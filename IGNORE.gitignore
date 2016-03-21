@@ -1,0 +1,49 @@
+### FdiTools Specific
+*.pdf						# vector figure file
+*.emf 						# vector figure file
+
+### Matlab
+*.asv						# Windows default autosave
+*.mex*						# Compiled MEX binaries
+slprj/						# Simulink Code Generation
+
+### Compiled source
+*.com 						# simple executable file
+*.class						# java class file
+*.dll 						# Dynamic Link Library
+*.exe						# executable file
+*.log						# loging text file
+
+### Embedded Source
+*.asm						# assembly files
+*.sql 						# sql database file
+*.sdf						# sql database file
+*.sln 						# visual studio solution
+*.filters 					# visual studio filters
+*.lst 						# masm c-compile listing
+*.obj 						# compiled modules object
+
+### Packages
+*.7z						# 7-zip compressed file
+*.iso						# disk image binary file
+*.rar						# rar compressed achive
+*.tar						# file collection type
+*.zip						# file compression type
+
+### OS generated files
+ehthumbs.db					# Windows image file caches
+Thumbs.db
+Desktop.ini					# Folder config file
+$RECYCLE.BIN/				# Recycle Bin used on file shares
+*.cab						# Windows Installer files
+*.msi
+*.msm
+*.msp
+*.lnk						# Windows shortcuts
+._*							# Thumbnails
+.DocumentRevisions-V100		# Volume root files
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
