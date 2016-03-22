@@ -1,4 +1,4 @@
-% Experiment Design Module
+% Excitation Design Module
 % Frequency Domain Identification Toolbox
 % Version 2.0 (R2013a) Feb-2014
 %  
