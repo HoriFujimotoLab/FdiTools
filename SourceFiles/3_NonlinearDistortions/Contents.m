@@ -6,7 +6,7 @@
 % time2nld      - Detect the even/odd non-linear contributions
 %                 with random odd-odd multisine measurements.
 % time2bla      - Reduce the main non-linear contributions
-%                 with multiple random odd/full multisine measurements.
+%                 with multiple random odd/full multisines.
 %
 % Author: Thomas Beauduin
 % Copyright (c) PMA, KULeuven, Belgium
