@@ -1,5 +1,5 @@
 function [Bg,Ag,xqsvd] = gtlsfdi(Y,X,freq,n,mh,ml,sY2,sX2,cXY)
-% GTLS - Generalized Total Least Squares Estimation
+% GTLS - Generalized Total Least Squares Estimation (SISO).
 %
 % X         : input values of the FRF
 % Y         : output values of the FRF

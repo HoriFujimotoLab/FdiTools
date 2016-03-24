@@ -1,6 +1,6 @@
 function [cost,interval,tag] = costtest(SYS,X,Y,freq,sX2,sY2,cXY,cORd,fs,relax,nrofp)
 % COSTTEST - Modelling residual cost validation test.
-%
+%   [cost,interval,tag] = costtest(SYS,X,Y,freq,sX2,sY2,cXY,cORd,fs,relax,nrofp)
 % freq      : freq vector of measurement
 % FRFm      : FRF measurement
 % FRF       : FRF of fitted model
@@ -9,9 +9,9 @@ function [cost,interval,tag] = costtest(SYS,X,Y,freq,sX2,sY2,cXY,cORd,fs,relax,n
 % Lags      : lags for auto_corr ploting
 % Corr      : Auto correlation
 % CB        : Confindence Bounds
-% Fraction  : fraction under confidence bounde
+% Fraction  : fraction under confidence bound
 % Author    : Thomas Beauduin, KULeuven, 2014
-%
+%%%%%
 model_n = fieldnames(SYS);
 model_c = struct2cell(SYS);
 B=tfdata(model_c{1},'v');
@@ -30,6 +30,10 @@ end
 
 
 % Note:
-% this is for estimator selection
-% create additional function for model set/order selection
-% input: data + matrix of parameters + requirested estimator
+% 1. this is for estimator selection
+%    create additional function for model set/order selection
+%    input: data + matrix of parameters + requirested estimator
+% 2. add mimo extensions by multibar per estimator single graph
+%    make the sorting based on the total cost, but keep the (black!) 
+%    noise line same level
+

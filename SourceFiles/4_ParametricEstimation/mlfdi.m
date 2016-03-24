@@ -1,5 +1,5 @@
 function [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iterno,relvar,cORd,fs)
-% MLFDI - Maximum Likelihood Estimation
+% MLFDI - Maximum Likelihood Estimation (SISO).
 %
 % X,Y       : input,output values of the FRF
 % freq      : discrete frequency vector

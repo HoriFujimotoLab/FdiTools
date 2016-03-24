@@ -25,12 +25,11 @@ M_ml=M_ml';
 M_mh = M_mh(:);
 M_ml = M_ml(:);
 nino=length(M_ml);
-N = length(freq(:));                % number of FRF measurement points
 nrofB=sum(M_mh-M_ml)+nino;          % total of numerator coefficients
-nrofpar = nrofB+n;
+nrofpar = nrofB+n;                  % total of 
+N = length(freq(:));                % number of FRF measurement points
 
-% calculation of the frequency axis
-j=sqrt(-1);
+j=sqrt(-1);                         % calculation of the frequency axis
 if (cORd == 'c')
    waxis = j*2*pi*freq;
 elseif (cORd == 'd')

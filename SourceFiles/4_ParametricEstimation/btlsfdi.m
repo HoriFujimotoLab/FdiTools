@@ -1,5 +1,5 @@
 function [Bb,Ab,Bg,Ag] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,iter,relax,max_dev)
-%BTLSFDI Bootstrapped Total Least Squares Estimation
+%BTLSFDI Bootstrapped Total Least Squares Estimation (SISO).
 %
 % X,Y       : input & output values of the FRF
 % freq      : frequency vector
