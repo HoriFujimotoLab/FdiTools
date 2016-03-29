@@ -1,4 +1,4 @@
-function [Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs)
+function [Bwls,Awls,waxis] = wlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs)
 %LLSFDI - Linear Least Squares FDI (MIMO).
 %   [Bls,Als]=lsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs)
 % FRF       : matrix of measured FRF values
@@ -41,24 +41,26 @@ if (min(M_mh-M_ml) < 0)
    return;
 end
 
+% calculation of frequency matrices (A*y=b)
+FRF_WD = FRF.*FRF_W;
 EX = kron(ones(nrofh*nroff,1),(n:-1:0));
 W = kron(ones(nrofh,n+1),waxis);
-P = (W.^EX).*kron(ones(1,n+1),Y(:));
+P = (W.^EX).*kron(ones(1,n+1),FRF_WD(:));
 
 Q = zeros(nrofh*nroff,nrofb);
 index = 1;
 for i=1:nrofh
-    EX = kron(ones(nroff,1),(M_mh(i):-1:M_ml(i)));
-    W = kron(ones(1,M_mh(i)-M_ml(i)+1),waxis);
-    U = (W.^EX).*kron(ones(1,M_mh(i)-M_ml(i)+1),X(:,i));
-    Q(nroff*(i-1)+1:nroff*i,index:index+M_mh(i)-M_ml(i)) = U;
-    index = index + M_mh(i)-M_ml(i)+1;
-end
-
+  EX = kron(ones(nroff,1),(M_mh(i):-1:M_ml(i)));
+  W = kron(ones(1,M_mh(i)-M_ml(i)+1),waxis);
+  U = (W.^EX).*kron(ones(1,M_mh(i)-M_ml(i)+1),FRF_W(:,i));
+  Q(nroff*(i-1)+1:nroff*i,index:index+M_mh(i)-M_ml(i)) = U;
+  index = index + M_mh(i)-M_ml(i)+1;
+end 
 A = [real(P(:,2:n+1)) -real(Q);imag(P(:,2:n+1)) -imag(Q)];
 b = -1*[real(P(:,1)) ; imag(P(:,1))];
 y=pinv(A)*b;
 
-[Bls,Als] = BA_construct(y,n,M_mh,M_ml);
+% storing the solution in matrices An and Bn
+[Bwls,Awls] = BA_construct(y,n,M_mh,M_ml);
 
 end

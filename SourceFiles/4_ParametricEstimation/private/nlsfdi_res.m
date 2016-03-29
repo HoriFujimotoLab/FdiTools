@@ -1,6 +1,6 @@
 function cost = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs)
-% NLSFDI_RES - Non Linear Least Squares FDI Residuals
-%
+% NLSFDI_RES - Non Linear Least Squares FDI Residuals (MIMO).
+%   cost = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs)
 % Bn,An     : Non-linear least square solution
 % freq      : discete frequency vector
 % FRF       : matrix of measured FRF values
@@ -11,40 +11,36 @@ function cost = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs)
 % cost      : residual cost function value
 % Author    : Thomas Beauduin, KULeuven, 2014
 %%%%%
-j=sqrt(-1);
-N = length(freq);
-[nino,x] = size(Bn);
+nroff = length(freq);           % number of frequency lines
+nrofh = size(Bn,1);             % number of transfer functions
+n=size(An,2)-1;                 % tranfer function order
+Ntot=size(Bn,2);                % Total number of 
 
-% calculation of the frequency axis
+% calculation of frequency axis
+j=sqrt(-1);
 if (cORd == 'c')
    waxis = j*2*pi*freq;
 elseif (cORd == 'd')
    waxis = exp(j*2*pi*freq/fs);
 else
-   disp('time domain is undefined; it is set to continuous time');
+   fprintf(' \n time domain undefined; it is set to continuous time \n')
    cORd = 'c';
    waxis = j*2*pi*freq;
 end
 
-% cost calculation
-[x,n]=size(An);
-n=n-1;
-ex=(n:-1:0)';
-EX=kron(ones(N,1),ex');
-W=kron(ones(1,n+1),waxis);
-P=(W.^EX);
-Ajw = P*An';
+% calculation of cost
+EX = kron(ones(nroff,1),(n:-1:0));
+W = kron(ones(1,n+1),waxis);
+P = (W.^EX);
 
-[x,Ntot]=size(Bn);
-ex=(n:-1:-Ntot+n+1)';
-EX=kron(ones(N,1),ex');
+EX = kron(ones(nroff,1),(n:-1:-Ntot+n+1));
 W = kron(ones(1,Ntot),waxis);
 Q = (W.^EX);
 
 E=[];
-for (i=1:nino)
-  E = [E; (FRF(:,i)-(Q*Bn(i,:)')./Ajw).*FRF_W(:,i) ];
+for i=1:nrofh
+    E = [E; (FRF(:,i)-(Q*Bn(i,:)')./(P*An')).*FRF_W(:,i) ];
 end
-cost = sum(abs(E).^2)/2;
+cost = (norm(E).^2)/2;
 
 end
