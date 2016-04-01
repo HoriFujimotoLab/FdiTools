@@ -1,6 +1,6 @@
-function [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iterno,relvar,cORd,fs)
-% MLFDI - Maximum Likelihood Estimation (SISO).
-%
+function [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+% MLFDI - Maximum Likelihood Estimation (MIMO).
+%   [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
 % X,Y       : input,output values of the FRF
 % freq      : discrete frequency vector
 % sX2       : variance of the input frequency domain noise 
@@ -18,120 +18,97 @@ function [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iterno,relvar,
 % Author    : Thomas Beauduin, KULeuven
 %             PMA division, February 2014
 %%%%%
-j=sqrt(-1);
-freq=freq(:);
-N=length(freq);
-nrofpar = mh-ml+n+1;
+M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
+M_mh = M_mh(:); M_ml = M_ml(:);
 
-% calculation of the frequency axis
-if (cORd == 'c')
-   waxis = j*2*pi*freq;
-elseif (cORd == 'd')
-   waxis = exp(j*2*pi*freq/fs);
-else
-   fprintf(' \n time domain is undefined; it is set to continuous time \n')
-   cORd = 'c';
-   waxis = j*2*pi*freq;
-end;
+nrofh = length(M_ml);               % number of transfer functions
+nroff = length(freq(:));            % number of frequency lines
+nrofb = sum(M_mh-M_ml)+nrofh;       % number of numerator coefficients
+nrofp = nrofb+n;                    % number of estimated parameters
 
-% LSFDI: initial estimate for iterative process
-fprintf(' \n calculation of the LS solution \n')
+% INITIAL LSFDI
+% initial values estimate for iterative process
+fprintf(' \n Initial calculation: LS solution \n')
+[Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs);
 
-% matrices P and Q are used to form the complex set of equations
-P = kron(ones(1,n+1),waxis).^kron(ones(N,1),(n:-1:0));
-Q = kron(ones(1,mh-ml+1),waxis).^kron(ones(N,1),(mh:-1:ml));
+% ITERATIVE ESTIMATION
+% Levenberg-Marquardt algorithm ML estimation
+fprintf('\n Iterative calculation: ML solution \n');
+if GN==1,   relax = 0;              % gradient relaxation
+else        relax = 1;
+end
+An = Als; Bn = Bls;                 % starting values choice
+iter0 = 0; iter = 0;                % interation number
+relerror0 = Inf; relerror = Inf;    % relative error
+y = ba2yvec(Bn,An,n,M_mh,M_ml);     % initial parameters
+dA = zeros(nrofh*nroff,n);          % denominator change
+dB = zeros(nrofh*nroff,nrofb);      % numerator change
+cost0 = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs);
 
-%calculation of the matrices A and b : A * y = b
-PP = kron(ones(1,n+1),Y).*P;
-QQ = kron(ones(1,mh-ml+1),X).*Q;
+EX = kron(ones(nroff,1),(n:-1:0));
+W = kron(ones(1,n+1),waxis);
+P = (W.^EX);
 
-A = [real(PP(:,2:n+1)) -real(QQ);imag(PP(:,2:n+1)) -imag(QQ)];
-b = -1*[real(PP(:,1)) ; imag(PP(:,1))];
+EX = kron(ones(nroff,1),(max(M_mh):-1:min(M_ml)));
+W = kron(ones(1,max(M_mh)-min(M_ml)+1),waxis);
+Q = (W.^EX);
 
-y=pinv(A)*b;
-
-% store the solution in matrices An and Bn
-An = [1 y(1:n)'];
-Bn = [zeros(1,n-mh) y(n+1:nrofpar)' zeros(1,ml)];
-
-% least squares solution is called Bls, and Als
-Als = An;
-Bls = Bn;
-
-%calculation of cost for Bls, Als
-cost0 = mlfdi_res(Bls,Als,freq,X,Y,sX2,sY2,cXY,cORd,fs);
-fprintf('ML cost function for least squares solution  = %g   \n',cost0);
-costls = cost0;
-fprintf('\n start of iteration \n');
-
-% iterative estimation according to the Levenberg-Marquardt algorithm
-% initialization of parameters
-relax = 1;
-skip = 0;
-iter = 0;
-relerror0 = inf;
-relerror = inf;
-y0 = y;
-
-% start of iterative process
 while (iter<iterno)&&(relerror>relvar)
   iter = iter + 1;
+  Num = P*Bn'; Den = P*An';
+  
+  E = []; SE = []; index = 0;
+  for i=1:nrofh
+      SE = [SE ; sqrt( sX2(:,i).*(abs(Num(:,i)).^2) ...
+                 + sY2(:,i).*(abs(Den).^2) ...
+                 - 2*real(cXY(:,i).*Den.*conj(Num(:,i))) )];
+      E = [E ; Num(:,i).*X(:,i) - Den.*Y(:,i)];
 
-  %calculation of new set of equations
-  Num = Q*y(n+1:n+1+mh-ml);
-  Den = P*[1;y(1:n)];
-  SE = sqrt( sX2.*(abs(Num).^2) + sY2.*(abs(Den).^2)...
-       - 2*real(cXY.*Den.*conj(Num)) );
-  E = Num.*X - Den.*Y;
-
-  A = [];
-  for (i=2:n+1)
-     WW = -Y.*P(:,i)./SE - E./(SE.^3).*( sY2.*real(Den.*conj(P(:,i)))...
-          - real(cXY.*P(:,i).*conj(Num)));
-     A = [A WW];
-  end;   
-
-  for (i=1:mh-ml+1)
-     WW = X.*Q(:,i)./SE - E./(SE.^3).*( sX2.*real(Num.*conj(Q(:,i)))...
-          - real(cXY.*Den.*conj(Q(:,i))) );
-     A = [A WW];
-  end;   
-
-  J = [real(A);imag(A)];
-  f = [real(E)./SE ; imag(E)./SE];
-
+      for j=2:n+1
+          WW = - Y(:,i).*P(:,j)./SE((i-1)*nroff+1:i*nroff) ...
+               - E((i-1)*nroff+1:i*nroff)./(SE((i-1)*nroff+1:i*nroff).^3)...
+                 .*(sY2(:,i).*real(Den.*conj(P(:,j)))...
+               - real(cXY(:,i).*P(:,j).*conj(Num(:,i))));
+          dA(nroff*(i-1)+1:nroff*i,j-1) = WW;
+      end
+      for j=1:M_mh(i)-M_ml(i)+1
+          WW =   X(:,i).*Q(:,j)./SE((i-1)*nroff+1:i*nroff) ...
+               - E((i-1)*nroff+1:i*nroff)./(SE((i-1)*nroff+1:i*nroff).^3)...
+                 .*(sX2(:,i).*real(Num(:,i).*conj(Q(:,j)))...
+               - real(cXY(:,i).*Den.*conj(Q(:,j))) );
+          dB(nroff*(i-1)+1:nroff*i,j+index) = WW;
+      end
+      index = index + M_mh(i)-M_ml(i)+1;
+  end
+  J = [real(dA) real(dB) ; imag(dA) imag(dB)];
+  e = [real(E)./SE ; imag(E)./SE];
   JtJ = J'*J;
-  Jte = J'*f;
+  Jte = J'*e;
   diagJtJ = diag(JtJ);
 
   A1 = J;
-  A2 =  sqrt(relax*diag(diagJtJ+max(diagJtJ)*eps));
+  A2 = sqrt(relax*diag(diagJtJ+max(diagJtJ)*eps));
   A = [A1 ; A2];
-
-  b = [f; zeros(nrofpar,1)];
+  b = [e; zeros(nrofp,1)];
   dy = -pinv(A)*b;   
   y0 = y;
   y = y + dy;
 
-% storing the solution in matrices An and Bn
-An = [ 1 y(1:n)'];
-Bn = [zeros(1,n-mh) y(n+1:nrofpar)' zeros(1,ml)];
-
-% calculation of the cost 
+  [Bn,An] = BA_construct(y,n,M_mh,M_ml); 
   cost = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs);
-  relerror = abs(cost-cost0)/cost0; %relative deviation of the cost
+  relerror = abs(cost-cost0)/cost0;
 
-  if (cost < cost0)
-     y0 = y; cost0=cost; %updating solution 
-     iter0 = iter;relerror0 = relerror;
-     relax = relax/2; %lowering the Levenberg-Marquardt factor
+  if ((cost < cost0)||(GN==1))
+      y0 = y; cost0 = cost;         % updating solution 
+      iter0 = iter;
+      relerror0 = relerror;
+      relax = relax/2;              % lowering Levenberg factor
   else
-     y = y0; cost=cost0; %restoring the best result 
-     An = [ 1 y(1:n)'];
-     Bn = [zeros(1,n-mh) y(n+1:nrofpar)' zeros(1,ml)];
-     relax = relax*10;
-  end;    
-  
-  fprintf('teller = %g  ITER = %g  cost = %g  relative eror = %g \n',...
+      y = y0; cost = cost0;         % restoring best result 
+      [Bn,An] = BA_construct(y,n,M_mh,M_ml);
+      relax = relax*10;             % increasing Levenberg factor
+  end
+  fprintf('Index = %g iter = %g cost = %g rel.error = %g \n',...
           iter,iter0,cost0,relerror0)
+      
 end

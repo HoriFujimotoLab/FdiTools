@@ -22,25 +22,19 @@ function [Bn,An,Bwls,Awls]=nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,iterno,relvar,GN,cO
 M_mh=M_mh'; M_ml=M_ml';         % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
 
-nrofh = length(M_ml);           % number of transfer functions
-nroff = length(freq(:));        % number of frequency lines
-nrofb = sum(M_mh-M_ml)+nrofh;   % number of numerator coefficients
-nrofp = nrofb+n;                % number of estimated parameters
+nrofh = length(M_ml);           % number of transfer functions (2)
+nroff = length(freq(:));        % number of frequency lines (240)
+nrofb = sum(M_mh-M_ml)+nrofh;   % number of numerator coefficients (4)
+nrofp = nrofb+n;                % number of estimated parameters (8)
 
 % INITIAL WLSFDI 
 % initial values estimate for iterative process
 fprintf(' \n Initial calculation: LS solution \n')
 [Bls,Als,waxis] = wlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs);
 
-ex = (n:-1:0)';
-EX = kron(ones(nroff,1),ex');
+EX = kron(ones(nroff,1),(n:-1:0));
 W = kron(ones(1,n+1),waxis);
 P_fr = (W.^EX);                             % First P-matrix
-
-Ntot = max(n+1,max(n-min(M_ml))+1);
-ex=(n:-1:-Ntot+n+1)';
-EX=kron(ones(nroff,1),ex');
-W = kron(ones(1,Ntot),waxis);
 Q_fr = (W.^EX);                             % First Q-matrix
 
 Ajw = P_fr*Als';
@@ -49,7 +43,7 @@ FRF_WW = FRF_W./kron(ones(1,nrofh),abs(Ajw)); % improved weigthing
 
 % ITERATIVE ESTIMATION
 % Levenberg-Marquardt algorithm NLS estimation
-fprintf('\n Iteration calculation: NLS solution \n');
+fprintf('\n Iterative calculation: NLS solution \n');
 if GN==1,   relax = 0;                      % gradient relaxation
 else        relax = 0.01;
 end
@@ -65,15 +59,14 @@ while (iter<iterno)&&(abs(relerror)>relvar)
   Ajw = P_fr*An';
 
   E = []; Bjw = [];
-  for (i=1:nrofh)
+  for i=1:nrofh
       Bjw = [Bjw Q_fr*Bn(i,:)'];
       E = [E; (FRF(:,i)-Bjw(:,i)./Ajw).*FRF_W(:,i) ];
   end
   FRF_WD = FRF_W./kron(ones(1,nrofh),Ajw.^2);
 
   dE_dA = [];
-  ex = (n-1:-1:0)';
-  EX = kron(ones(nrofh*nroff,1),ex');
+  EX = kron(ones(nrofh*nroff,1),(n-1:-1:0));
   W = kron(ones(nrofh,n),waxis);
   dE_dA = (W.^EX).*kron(ones(1,n),FRF_WD(:).*Bjw(:));
   FRF_WD = FRF_W./kron(ones(1,nrofh),Ajw);
@@ -86,16 +79,16 @@ while (iter<iterno)&&(abs(relerror)>relvar)
       dE_dB(nroff*(i-1)+1:nroff*i,index:index+M_mh(i)-M_ml(i)) = U;
       index = index + M_mh(i)-M_ml(i)+1;
   end
-  A = [real(dE_dA) real(dE_dB);imag(dE_dA) imag(dE_dB)];
-  b = [real(E) ; imag(E)];
-  JtJ = A'*A;
-  Jte = A'*b;
+  J = [real(dE_dA) real(dE_dB) ; imag(dE_dA) imag(dE_dB)];
+  e = [real(E) ; imag(E)];
+  JtJ = J'*J;
+  Jte = J'*e;
   diagJtJ = diag(JtJ);
-   
-  A1 = A;
-  A2 =  sqrt(relax*diag(diagJtJ+max(diagJtJ)*eps));
+  
+  A1 = J;
+  A2 = sqrt(relax*diag(diagJtJ+max(diagJtJ)*eps));
   A = [A1 ; A2];
-  b = [b; zeros(nrofp,1)];
+  b = [e; zeros(nrofp,1)];
   dy = - pinv(A)*b;  
   y0 = y;
   y = y + dy;
