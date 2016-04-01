@@ -1,5 +1,5 @@
 function [y,time] = pretreat(x,nrofs,varargin)
-%PRETREAT - pretreatment of data vectors for estimation.
+%PRETREAT - pretreatment of data vectors. (MIMO)
 % [y,time] = pretreat(x,nrofs,fs)
 % x     : untreated periodic measurement vector
 % nrofs : number of samples per signal period
@@ -9,38 +9,36 @@ function [y,time] = pretreat(x,nrofs,varargin)
 % y     : transient, offset and trend removed data
 % Author: Thomas Beauduin, KULeuven, 2014
 %%%%%
-
-% 0. Input processing:
-switch nargin-2
+switch nargin-2                         % Input processing
     case 0, fs = 1; nroft = 1; trend = 0;
     case 1, fs = varargin{1}; nroft = 1; trend = 0;
     case 2, fs = varargin{1}; nroft = varargin{2}; trend = 0;
     case 3, fs = varargin{1}; nroft = varargin{2}; trend = varargin{3};
 end
 
-% 1. Transient Removal:
-x = x(nroft*nrofs+1:end);
-nrofp = ceil(length(x)/nrofs);
+nrofr = size(x,1);                      % number of data points (rows)
+nrofc = size(x,2);                      % number of data vectors (columns)
+nrofp = ceil(nrofr/nrofs)-nroft;        % number of periods
+y = x(1:nrofs*nrofp,:);
 
-% 2. Offset Removal:
-P = reshape(x,nrofs,nrofp);
-Pa = mean(P,1);
-for k=1:nrofp
-    for l=1:nrofs
-        P(l,k)=P(l,k)-Pa(k);
+for k=1:nrofc
+    u = x(nroft*nrofs+1:end,k);         % Transient Removal
+    D = reshape(u,nrofs,nrofp);         % Offset Removal
+    Da = mean(D,1);
+    for m=1:nrofp
+        for n=1:nrofs
+            D(n,m) = D(n,m) - Da(m);
+        end
     end
+    if trend > 0                        % Trend Removal
+        for m=1:nrofp
+            D(:,m) = detrend(D(:,m));
+        end
+    end
+    y(:,k) = D(:);
 end
-y = P(:);
-time = (0:(length(y)-1))'/fs;
 
-% 3. Trend Removal:
-if trend > 0
-    P = reshape(y,nrofs,nrofp);
-    for k=1:nrofp
-        P(:,k)=detrend(P(:,k));
-    end
-    y = P(:);
-end
+time = (0:(length(y(:,1))-1))'/fs;
 end
 
 % 4. References:
