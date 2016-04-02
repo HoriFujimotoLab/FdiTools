@@ -1,6 +1,6 @@
 function [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df)
-%TIME2FRF_ML - maximum-likelihood estimation of FRF (SISO).
-% [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,nrofs)
+%TIME2FRF_ML - maximum-likelihood estimation of FRF (MIMO).
+%   [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,nrofs)
 % x, y      : data vectors of periodic broad-band measurement
 % fs,df     : sampling frequency and frequency resolution
 % fl,fh     : lowest & highest frequency of excitated band
@@ -11,50 +11,69 @@ function [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df)
 % Author    : Thomas Beauduin, KULeuven
 %             PMA division, February 2014
 %%%%%
-x=x(:); y=y(:);                                   % input/output vectoring
-nrofs = fs/df;                                    % samples per period
-nl = ceil(fl/df); nh = floor(fh/df);              % low & high freq points
-freq = double((nl:1:nh)'/(nrofs/fs));             % freq lines
-nroff=length(freq);                               % number of freq lines
-nrofp = double(floor(length(x)/nrofs));           % number of periods
+[~,nrofi] = size(x);                                % number of inputs
+[~,nrofo] = size(y);                                % number of outputs 
+nrofs = fs/df;                                      % samples per period
+nl = ceil(fl/df); nh = floor(fh/df);                % low & high freq
+freq = double((nl:1:nh)'/(nrofs/fs));               % full freq lines
+nroff = length(freq);                               % number of freq lines
+nrofp = double(floor(length(x)/nrofs));             % number of periods
 
-% FFT
-INPs=[]; OUTs=[];
-for i=1:nrofp
-	INPs=[INPs fft(x(1+(i-1)*nrofs:i*nrofs))];    % fft of 1x period
-	OUTs=[OUTs fft(y(1+(i-1)*nrofs:i*nrofs))];
+% SIGNAL
+INP = zeros(nroff,nrofp,nrofi); 
+OUT = zeros(nroff,nrofp,nrofo);
+Xs = zeros(nroff,nrofi); sX2 = zeros(nroff,nrofi);
+Ys = zeros(nroff,nrofo); sY2 = zeros(nroff,nrofo);
+cXY = zeros(nroff,nrofi,nrofo); 
+FRFs = zeros(nroff,nrofi,nrofo); sCR = zeros(nroff,nrofi,nrofo);
+for i=1:nrofi
+    for p=1:nrofp
+        Ip = fft(x(1+(p-1)*nrofs:p*nrofs,i));       % fft of 1x period
+        INP(:,p,i) = Ip(nl+1:nh+1);                 % fft dc-term removal
+    end
+    Xs(:,i) = mean(INP(:,:,i),2);
+    sX2(:,i)=((std(INP(:,:,i),0,2)).^2)/2/nrofp;    % measurement variances
 end
-INPs=INPs(nl+1:1:nh+1,:);                         % fft dc-term removal
-OUTs=OUTs(nl+1:1:nh+1,:);
-
-% VAR
-sX2=((std(INPs'))'.^2)/2/nrofp;                   % measurement variances
-sY2=((std(OUTs'))'.^2)/2/nrofp;
-for (i=1:nroff)
-    Q=cov(INPs(i,:),OUTs(i,:));                   % measurement covariance
-    cXY(i,1) = Q(1,2)/2/nrofp;
+for o=1:nrofo
+    for p=1:nrofp
+        Op = fft(y(1+(p-1)*nrofs:p*nrofs,o));
+        OUT(:,p,o) = Op(nl+1:nh+1);
+    end
+    Ys(:,o) = mean(OUT(:,:,o),2);
+    sY2(:,o)=((std(OUT(:,:,o),0,2)).^2)/2/nrofp;
 end
-
-% FRF
-Xs=mean(INPs,2); Ys=mean(OUTs,2);                 % frequency averaging
-FRFs=Ys./Xs;                                      % signal frf calc
-sCR=2*abs(FRFs).*(sX2./(abs(Xs)).^2 ...           % cramer-rao lowerbound
-    +sY2./(abs(Ys)).^2 ...
-    -2*real(cXY./(conj(Xs).*Ys)));
-
-% NOISE
-OUT2=[]; m=1;                             
-for i=1:nrofp/2
- OUT2=[OUT2 fft(y(1+(i-1)*nrofs*2:i*nrofs*2))];   % fft of 2x period
-end
-OUT2=OUT2(2*nl:1:2*nh+1,:);                       % fft dc-term removal
-    
-for k=1:nroff*2
-    if mod(k,2)~=0                                % uneven freq lines
-        OUTn(m,:)=OUT2(k,:);                      % noise data
-        m=m+1;
+for i=1:nrofi
+    for o=1:nrofo
+        for f=1:nroff
+            Cf = cov(INP(f,:,i),OUT(f,:,o));        % measurement covariance
+            cXY(f,i,o) = Cf(1,2)/2/nrofp;
+        end
+        FRFs(:,i,o) = Ys(:,o)./Xs(:,i);
+        sCR(:,i,o) = 2*abs(FRFs(:,i,o)).*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
+            + sY2(:,o)./(abs(Ys(:,o))).^2 ...
+            - 2*real(cXY(:,i,o)./(conj(Xs(:,i)).*Ys(:,o))));
     end
 end
-Yn=mean(OUTn,2);                                  % frequency averaging
-FRFn = Yn./Xs;                                    % noise frf calc
+
+% NOISE
+OUT = zeros(nroff*2,floor(nrofp/2),nrofo);
+NSE = zeros(nroff,floor(nrofp/2),nrofo);
+Yn = zeros(nroff,nrofo);
+FRFn = zeros(nroff,nrofi,nrofo);
+for o=1:nrofo
+    for p=1:floor(nrofp/2)
+        Op = fft(y(1+(p-1)*nrofs*2:p*nrofs*2,o));   % fft of 2x period
+        OUT(:,p,o) = Op(2*nl:2*nh+1);               % fft dc-term removal
+    end
+    for f=2:2:nroff*2                               % uneven freq lines
+        NSE(f/2,:,o) = OUT(f,:,o);
+    end
+    Yn(:,o) = mean(NSE(:,:,o),2);
+end
+for i=1:nrofi
+    for o=1:nrofo
+        FRFn(:,i,o) = Yn(:,o)./Xs(:,i);             % noise frf calc
+    end
+end
+                                  
 end

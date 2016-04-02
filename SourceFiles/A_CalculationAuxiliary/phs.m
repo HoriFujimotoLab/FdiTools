@@ -55,7 +55,7 @@ end
 
 % 2. GLITCH REMOVAL
 % remove cleaned data up-down glitch for visibility
-if nargin > 1
+if nargin > 2
     glitch = varargin{end};
     for i=3:length(Y)-2
         if ( abs(Y(i)-Y(i-1))>glitch || abs(Y(i)-Y(i-2))>glitch ) && ...
