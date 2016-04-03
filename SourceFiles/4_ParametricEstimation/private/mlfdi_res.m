@@ -12,9 +12,11 @@ function cost = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs)
 % fs        : sampling frequency (optional parameter)
 % Author    : Thomas Beauduin, KULeuven, 2014
 %%%%%
-nroff = length(freq);           % number of frequency lines
-nrofh = size(Bn,1);             % number of transfer functions
-n = size(An,2)-1;               % tranfer function order
+nrofi = size(X,2);                  % number of inputs
+nrofo = size(Y,2);                  % number of outputs
+nrofh = nrofi*nrofo;                % number of transfer functions
+nroff = length(freq);               % number of frequency lines
+n = size(An,2)-1;                   % tranfer function order
 
 % calculation of frequency axis
 j=sqrt(-1);
@@ -35,11 +37,12 @@ P = (W.^EX);
 Num = P*Bn'; Den = P*An';
 
 E = [];
-for i=1:nrofh
-    SE = sqrt(sX2(:,i).*(abs(Num(:,i)).^2) + ...
-              sY2(:,i).*(abs(Den).^2) - ...
-              2*real(cXY(:,i).*Den.*conj(Num(:,i))));
-    E = [E; (Num(:,i).*X(:,i) - Den.*Y(:,i))./SE];
+for h=1:nrofh
+    i = ceil(h/nrofo); o = h-(i-1)*nrofo;
+    SE = sqrt(sX2(:,i).*(abs(Num(:,h)).^2) + ...
+              sY2(:,o).*(abs(Den).^2) - ...
+              2*real(cXY(:,h).*Den.*conj(Num(:,h))));
+    E = [E; (Num(:,h).*X(:,i) - Den.*Y(:,o))./SE];
 end
 cost = (norm(E).^2)/2;
 

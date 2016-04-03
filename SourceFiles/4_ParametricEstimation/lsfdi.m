@@ -13,14 +13,14 @@ function [Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs)
 % Author    : Thomas Beauduin, KULeuven
 %             PMA division, February 2014
 %%%%%
-M_mh=M_mh'; M_ml=M_ml';         % vectorize numerator sizes
+M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
 
-nrofi = size(X,2);              % number of inputs
-nrofo = size(Y,2);              % number of outputs
-nrofh = nrofi*nrofo;            % number of transfer functions
-nroff = length(freq(:));        % number of frequency lines
-nrofb = sum(M_mh-M_ml)+nrofh;   % number of numerator coefficients
+nrofi = size(X,2);                  % number of inputs
+nrofo = size(Y,2);                  % number of outputs
+nrofh = nrofi*nrofo;                % number of transfer functions
+nroff = length(freq(:));            % number of frequency lines
+nrofb = sum(M_mh-M_ml)+nrofh;       % number of numerator coefficients
 
 % calculation of frequency axis
 j=sqrt(-1);

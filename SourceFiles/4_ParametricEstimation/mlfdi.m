@@ -21,7 +21,9 @@ function [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,rel
 M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
 
-nrofh = length(M_ml);               % number of transfer functions
+nrofi = size(X,2);                  % number of inputs
+nrofo = size(Y,2);                  % number of outputs
+nrofh = nrofi*nrofo;                % number of transfer functions
 nroff = length(freq(:));            % number of frequency lines
 nrofb = sum(M_mh-M_ml)+nrofh;       % number of numerator coefficients
 nrofp = nrofb+n;                    % number of estimated parameters
@@ -40,7 +42,7 @@ end
 An = Als; Bn = Bls;                 % starting values choice
 iter0 = 0; iter = 0;                % interation number
 relerror0 = Inf; relerror = Inf;    % relative error
-y = ba2yvec(Bn,An,n,M_mh,M_ml);     % initial parameters
+y = ba2yvec(Bn,An,n,M_mh,M_ml);     % initial parameter vector
 dA = zeros(nrofh*nroff,n);          % denominator change
 dB = zeros(nrofh*nroff,nrofb);      % numerator change
 cost0 = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs);
@@ -58,27 +60,27 @@ while (iter<iterno)&&(relerror>relvar)
   Num = P*Bn'; Den = P*An';
   
   E = []; SE = []; index = 0;
-  for i=1:nrofh
-      SE = [SE ; sqrt( sX2(:,i).*(abs(Num(:,i)).^2) ...
-                 + sY2(:,i).*(abs(Den).^2) ...
-                 - 2*real(cXY(:,i).*Den.*conj(Num(:,i))) )];
-      E = [E ; Num(:,i).*X(:,i) - Den.*Y(:,i)];
-
+  for h=1:nrofh
+      i = ceil(h/nrofo); o = h-(i-1)*nrofo;
+      SE = [SE ; sqrt( sX2(:,i).*(abs(Num(:,h)).^2) ...
+                 + sY2(:,o).*(abs(Den).^2) ...
+                 - 2*real(cXY(:,h).*Den.*conj(Num(:,h))) )];
+      E = [E ; Num(:,h).*X(:,i) - Den.*Y(:,h)];
       for j=2:n+1
-          WW = - Y(:,i).*P(:,j)./SE((i-1)*nroff+1:i*nroff) ...
-               - E((i-1)*nroff+1:i*nroff)./(SE((i-1)*nroff+1:i*nroff).^3)...
-                 .*(sY2(:,i).*real(Den.*conj(P(:,j)))...
-               - real(cXY(:,i).*P(:,j).*conj(Num(:,i))));
-          dA(nroff*(i-1)+1:nroff*i,j-1) = WW;
+          WW = - Y(:,o).*P(:,j)./SE((h-1)*nroff+1:h*nroff) ...
+               - E((h-1)*nroff+1:h*nroff)./(SE((h-1)*nroff+1:h*nroff).^3)...
+                 .*(sY2(:,o).*real(Den.*conj(P(:,j)))...
+               - real(cXY(:,h).*P(:,j).*conj(Num(:,h))));
+          dA(nroff*(h-1)+1:nroff*h,j-1) = WW;
       end
-      for j=1:M_mh(i)-M_ml(i)+1
-          WW =   X(:,i).*Q(:,j)./SE((i-1)*nroff+1:i*nroff) ...
-               - E((i-1)*nroff+1:i*nroff)./(SE((i-1)*nroff+1:i*nroff).^3)...
-                 .*(sX2(:,i).*real(Num(:,i).*conj(Q(:,j)))...
-               - real(cXY(:,i).*Den.*conj(Q(:,j))) );
-          dB(nroff*(i-1)+1:nroff*i,j+index) = WW;
+      for j=1:M_mh(h)-M_ml(h)+1
+          WW =   X(:,i).*Q(:,j)./SE((h-1)*nroff+1:h*nroff) ...
+               - E((h-1)*nroff+1:h*nroff)./(SE((h-1)*nroff+1:h*nroff).^3)...
+                 .*(sX2(:,i).*real(Num(:,h).*conj(Q(:,j)))...
+               - real(cXY(:,h).*Den.*conj(Q(:,j))) );
+          dB(nroff*(h-1)+1:nroff*h,j+index) = WW;
       end
-      index = index + M_mh(i)-M_ml(i)+1;
+      index = index + M_mh(h)-M_ml(h)+1;
   end
   J = [real(dA) real(dB) ; imag(dA) imag(dB)];
   e = [real(E)./SE ; imag(E)./SE];
