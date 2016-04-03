@@ -1,6 +1,6 @@
 function cost = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs)
 % MLFDI_RES - Maximum Likelihood Estimation Residuals.
-%
+%   cost = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs)
 % Bn,An     : solution after "iter" iterations
 % freq      : discrete frequency vector
 % X,Y       : input,output values of the FRF

@@ -1,6 +1,6 @@
 function [Ua,Ub,S1,S2,X]=qsvd(A,B)
 % QSVD - Quadratic Singular Value Decomposition: M=U*S*X'
-%
+%   [Ua,Ub,S1,S2,X]=qsvd(A,B)
 % A, B  : input matrices
 % Ua,Ub : Unitary Matrices 
 % S1,S2 : Recangular Diagonal Matrix

@@ -14,7 +14,7 @@ function cost = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs)
 nroff = length(freq);           % number of frequency lines
 nrofh = size(Bn,1);             % number of transfer functions
 n=size(An,2)-1;                 % tranfer function order
-Ntot=size(Bn,2);                % Total number of 
+nrofb = size(Bn,2);             % number of nominator parameters 
 
 % calculation of frequency axis
 j=sqrt(-1);
@@ -33,13 +33,13 @@ EX = kron(ones(nroff,1),(n:-1:0));
 W = kron(ones(1,n+1),waxis);
 P = (W.^EX);
 
-EX = kron(ones(nroff,1),(n:-1:-Ntot+n+1));
-W = kron(ones(1,Ntot),waxis);
+EX = kron(ones(nroff,1),(n:-1:-nrofb+n+1));
+W = kron(ones(1,nrofb),waxis);
 Q = (W.^EX);
 
 E=[];
-for i=1:nrofh
-    E = [E; (FRF(:,i)-(Q*Bn(i,:)')./(P*An')).*FRF_W(:,i) ];
+for h=1:nrofh
+    E = [E; (FRF(:,h)-(Q*Bn(h,:)')./(P*An')).*FRF_W(:,h) ];
 end
 cost = (norm(E).^2)/2;
 
