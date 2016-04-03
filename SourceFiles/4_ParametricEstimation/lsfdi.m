@@ -16,10 +16,11 @@ function [Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs)
 M_mh=M_mh'; M_ml=M_ml';         % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
 
-nrofh = length(M_ml);           % number of transfer functions
+nrofi = size(X,2);              % number of inputs
+nrofo = size(Y,2);              % number of outputs
+nrofh = nrofi*nrofo;            % number of transfer functions
 nroff = length(freq(:));        % number of frequency lines
 nrofb = sum(M_mh-M_ml)+nrofh;   % number of numerator coefficients
-nrofp = nrofb+n;                % number of parameters
 
 % calculation of frequency axis
 j=sqrt(-1);
@@ -43,21 +44,24 @@ end
 
 EX = kron(ones(nrofh*nroff,1),(n:-1:0));
 W = kron(ones(nrofh,n+1),waxis);
-P = (W.^EX).*kron(ones(1,n+1),Y(:));
+for i=1:nrofi
+    Yh(:,(i-1)*nrofo+1:i*nrofo) = Y;
+end
+P = (W.^EX).*kron(ones(1,n+1),Yh(:));
 
 Q = zeros(nrofh*nroff,nrofb);
 index = 1;
-for i=1:nrofh
-    EX = kron(ones(nroff,1),(M_mh(i):-1:M_ml(i)));
-    W = kron(ones(1,M_mh(i)-M_ml(i)+1),waxis);
-    U = (W.^EX).*kron(ones(1,M_mh(i)-M_ml(i)+1),X(:,i));
-    Q(nroff*(i-1)+1:nroff*i,index:index+M_mh(i)-M_ml(i)) = U;
-    index = index + M_mh(i)-M_ml(i)+1;
+for h=1:nrofh
+    EX = kron(ones(nroff,1),(M_mh(h):-1:M_ml(h)));
+    W = kron(ones(1,M_mh(h)-M_ml(h)+1),waxis);
+    U = (W.^EX).*kron(ones(1,M_mh(h)-M_ml(h)+1),X(:,ceil(h/nrofo)));
+    Q(nroff*(h-1)+1:nroff*h,index:index+M_mh(h)-M_ml(h)) = U;
+    index = index + M_mh(h)-M_ml(h)+1;
 end
 
 A = [real(P(:,2:n+1)) -real(Q);imag(P(:,2:n+1)) -imag(Q)];
 b = -1*[real(P(:,1)) ; imag(P(:,1))];
-y=pinv(A)*b;
+y = pinv(A)*b;
 
 [Bls,Als] = BA_construct(y,n,M_mh,M_ml);
 

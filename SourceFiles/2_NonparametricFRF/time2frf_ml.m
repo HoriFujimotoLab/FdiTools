@@ -12,20 +12,22 @@ function [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df)
 %             PMA division, February 2014
 %%%%%
 [~,nrofi] = size(x);                                % number of inputs
-[~,nrofo] = size(y);                                % number of outputs 
+[~,nrofo] = size(y);                                % number of outputs
+nrofh = nrofi*nrofo;                              % number of tf's (Hxy)
 nrofs = fs/df;                                      % samples per period
 nl = ceil(fl/df); nh = floor(fh/df);                % low & high freq
 freq = double((nl:1:nh)'/(nrofs/fs));               % full freq lines
 nroff = length(freq);                               % number of freq lines
-nrofp = double(floor(length(x)/nrofs));             % number of periods
+nrofp = double(floor(length(x)/nrofs));             % number of period
 
 % SIGNAL
 INP = zeros(nroff,nrofp,nrofi); 
 OUT = zeros(nroff,nrofp,nrofo);
 Xs = zeros(nroff,nrofi); sX2 = zeros(nroff,nrofi);
 Ys = zeros(nroff,nrofo); sY2 = zeros(nroff,nrofo);
-cXY = zeros(nroff,nrofi,nrofo); 
-FRFs = zeros(nroff,nrofi,nrofo); sCR = zeros(nroff,nrofi,nrofo);
+cXY = zeros(nroff,nrofh); 
+FRFs = zeros(nroff,nrofh); 
+sCR = zeros(nroff,nrofh);
 for i=1:nrofi
     for p=1:nrofp
         Ip = fft(x(1+(p-1)*nrofs:p*nrofs,i));       % fft of 1x period
@@ -46,20 +48,20 @@ for i=1:nrofi
     for o=1:nrofo
         for f=1:nroff
             Cf = cov(INP(f,:,i),OUT(f,:,o));        % measurement covariance
-            cXY(f,i,o) = Cf(1,2)/2/nrofp;
+            cXY(f,(i-1)*nrofo+o) = Cf(1,2)/2/nrofp;
         end
-        FRFs(:,i,o) = Ys(:,o)./Xs(:,i);
-        sCR(:,i,o) = 2*abs(FRFs(:,i,o)).*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
+        FRFs(:,(i-1)*nrofo+o) = Ys(:,o)./Xs(:,i);
+        sCR(:,(i-1)*nrofo+o) = ...
+            2*abs(FRFs(:,(i-1)*nrofo+o)).*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
             + sY2(:,o)./(abs(Ys(:,o))).^2 ...
-            - 2*real(cXY(:,i,o)./(conj(Xs(:,i)).*Ys(:,o))));
+            - 2*real(cXY(:,(i-1)*nrofo+o)./(conj(Xs(:,i)).*Ys(:,o))));
     end
 end
 
 % NOISE
 OUT = zeros(nroff*2,floor(nrofp/2),nrofo);
 NSE = zeros(nroff,floor(nrofp/2),nrofo);
-Yn = zeros(nroff,nrofo);
-FRFn = zeros(nroff,nrofi,nrofo);
+Yn = zeros(nroff,nrofo); FRFn = zeros(nroff,nrofh);
 for o=1:nrofo
     for p=1:floor(nrofp/2)
         Op = fft(y(1+(p-1)*nrofs*2:p*nrofs*2,o));   % fft of 2x period
@@ -72,7 +74,7 @@ for o=1:nrofo
 end
 for i=1:nrofi
     for o=1:nrofo
-        FRFn(:,i,o) = Yn(:,o)./Xs(:,i);             % noise frf calc
+        FRFn(:,(i-1)*nrofo+o) = Yn(:,o)./Xs(:,i);   % noise frf calc
     end
 end
                                   
