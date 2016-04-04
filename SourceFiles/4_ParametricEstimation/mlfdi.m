@@ -18,33 +18,31 @@ function [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,rel
 % Author    : Thomas Beauduin, KULeuven
 %             PMA division, February 2014
 %%%%%
-M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
+M_mh=M_mh'; M_ml=M_ml';                 % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
 
-nrofi = size(X,2);                  % number of inputs
-nrofo = size(Y,2);                  % number of outputs
-nrofh = nrofi*nrofo;                % number of transfer functions
-nroff = length(freq(:));            % number of frequency lines
-nrofb = sum(M_mh-M_ml)+nrofh;       % number of numerator coefficients
-nrofp = nrofb+n;                    % number of estimated parameters
+nrofi = size(X,2);                      % number of inputs
+nrofo = size(Y,2);                      % number of outputs
+nrofh = nrofi*nrofo;                    % number of transfer functions
+nroff = length(freq(:));                % number of frequency lines
+nrofb = sum(M_mh-M_ml)+nrofh;           % number of numerator coefficients
+nrofp = nrofb+n;                        % number of estimated parameters
 
-% INITIAL LSFDI
-% initial values estimate for iterative process
+% Calculation of initial values for iterative process
 fprintf(' \n Initial calculation: LS solution \n')
 [Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs);
 
-% ITERATIVE ESTIMATION
-% Levenberg-Marquardt algorithm ML estimation
+% Calculation of iterative parameter estimation
 fprintf('\n Iterative calculation: ML solution \n');
-if GN==1,   relax = 0;              % gradient relaxation
+if GN==1,   relax = 0;                  % gradient relaxation
 else        relax = 1;
 end
-An = Als; Bn = Bls;                 % starting values choice
-iter0 = 0; iter = 0;                % interation number
-relerror0 = Inf; relerror = Inf;    % relative error
-y = ba2yvec(Bn,An,n,M_mh,M_ml);     % initial parameter vector
-dA = zeros(nrofh*nroff,n);          % denominator change
-dB = zeros(nrofh*nroff,nrofb);      % numerator change
+An = Als; Bn = Bls;                     % starting values choice
+iter0 = 0; iter = 0;                    % interation number
+relerror0 = Inf; relerror = Inf;        % relative error
+y = ba2yvec(Bn,An,n,M_mh,M_ml);         % initial parameter vector
+dA = zeros(nrofh*nroff,n);              % denominator change
+dB = zeros(nrofh*nroff,nrofb);          % numerator change
 cost0 = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs);
 
 EX = kron(ones(nroff,1),(n:-1:0));
@@ -101,14 +99,14 @@ while (iter<iterno)&&(relerror>relvar)
   relerror = abs(cost-cost0)/cost0;
 
   if ((cost < cost0)||(GN==1))
-      y0 = y; cost0 = cost;         % updating solution 
+      y0 = y; cost0 = cost;             % updating solution 
       iter0 = iter;
       relerror0 = relerror;
-      relax = relax/2;              % lowering Levenberg factor
+      relax = relax/2;                  % lowering Levenberg factor
   else
-      y = y0; cost = cost0;         % restoring best result 
+      y = y0; cost = cost0;             % restoring best result 
       [Bn,An] = BA_construct(y,n,M_mh,M_ml);
-      relax = relax*10;             % increasing Levenberg factor
+      relax = relax*10;                 % increasing Levenberg factor
   end
   fprintf('Index = %g iter = %g cost = %g rel.error = %g \n',...
           iter,iter0,cost0,relerror0)

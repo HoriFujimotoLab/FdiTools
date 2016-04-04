@@ -19,29 +19,22 @@ M_mh = M_mh(:); M_ml = M_ml(:);
 nrofh = length(M_ml);           % number of transfer functions
 nroff = length(freq(:));        % number of frequency lines
 nrofb = sum(M_mh-M_ml)+nrofh;   % number of numerator coefficients
-nrofp = nrofb+n;                % number of parameters
 
-% calculation of frequency axis
-j=sqrt(-1);
-if (cORd == 'c')
-   waxis = j*2*pi*freq;
-elseif (cORd == 'd')
-   waxis = exp(j*2*pi*freq/fs);
-else
-   fprintf(' \n time domain undefined; it is set to continuous time \n')
-   cORd = 'c';
-   waxis = j*2*pi*freq;
+% Calculation of frequency axis
+if     (cORd == 'c'),   waxis = 1i*2*pi*freq;
+elseif (cORd == 'd'),   waxis = exp(1i*2*pi*freq/fs);
+else                    waxis = 1i*2*pi*freq;
+    fprintf('\n Time domain undefined; it is set to continuous time \n');                       
 end
-
 if (max(M_mh) > n)
-   fprintf(' \n Warning: numerator order is larger than denominator order \n');
+   fprintf('\n Warning: numerator order is larger than denominator order\n');
 end
 if (min(M_mh-M_ml) < 0) 
-   fprintf(' \n Error: elements of M_ml must be smaller that corresponding M_mh \n');
+   fprintf('\n Error: elements of M_ml must be smaller that those of M_mh\n');
    return;
 end
 
-% calculation of frequency matrices (A*y=b)
+% Calculation of data matrix A
 FRF_WD = FRF.*FRF_W;
 EX = kron(ones(nrofh*nroff,1),(n:-1:0));
 W = kron(ones(nrofh,n+1),waxis);
@@ -57,10 +50,10 @@ for i=1:nrofh
   index = index + M_mh(i)-M_ml(i)+1;
 end 
 A = [real(P(:,2:n+1)) -real(Q);imag(P(:,2:n+1)) -imag(Q)];
-b = -1*[real(P(:,1)) ; imag(P(:,1))];
-y=pinv(A)*b;
 
-% storing the solution in matrices An and Bn
+% Calculation of pseudoinverse least squares solution
+b = -1*[real(P(:,1)) ; imag(P(:,1))];
+y = pinv(A)*b;
 [Bwls,Awls] = BA_construct(y,n,M_mh,M_ml);
 
 end
