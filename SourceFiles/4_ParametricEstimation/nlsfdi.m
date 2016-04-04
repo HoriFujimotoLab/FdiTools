@@ -1,23 +1,15 @@
-function [Bn,An,Bwls,Awls]=nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+function [Bn,An,Bwls,Awls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
 % NLLSFDI - Non-linear Least Squares FDI (MIMO).
-%   [Bn,An,Bwls,Awls]=nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
-% FRF       : matrix of measured FRF values
-% freq      : discete frequency vector
-% FRF_W     : matrix of frequency weighting functions
-% n         : order of the denominator polynomial
-% M_mh,M_ml : vector of high and low order of the numerator polynomials
-%             the i-th element of M_mh and M_ml corresponds to the i-th FRF
-% iterno    : number of iterations
-% relvar    : minimum relative deviation of the cost function
-% Bn,An     : Non-linear least square solution
-% Als,Bls   : Least square solution
-% Awls,Bwls : Weighted least square solution
+%   [Bn,An,Bwls,Awls]=nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
+% FRF,freq  : Transfer function frequency domain data
+% FRF_W     : matrix of frequency weighting function
+% n,mh,ml   : Order of the denominator/nominator polynomials
+% max_iter  : Maximum number of iterations (stop criterion)
+% max_err   : Maximum model relative error (stop criterion)
 % GN        : GN=1 : Gauss Newton, GN=0: Levenberg-Marquardt
-% cORd      : if 'c', identification of a continuous time model
-%             if 'd', identification of a discrete time model          
-% fs        : sampling frequency (optional parameter)
-% Author    : Thomas Beauduin, KULeuven
-%             PMA division, February 2014
+% cORd, fs  : Continuous 'c' or discrete 'd' model identification
+% Bn/w,An/w : NLS/WLS iterative & initial estimation solution
+% Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
 M_mh=M_mh'; M_ml=M_ml';         % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
@@ -30,7 +22,7 @@ nrofp = nrofb+n;                % number of estimated parameters (8)
 % INITIAL WLSFDI 
 % initial values estimate for iterative process
 fprintf(' \n Initial calculation: LS solution \n')
-[Bls,Als,waxis] = wlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs);
+[~,Als,waxis] = wlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs);
 
 EX = kron(ones(nroff,1),(n:-1:0));
 W = kron(ones(1,n+1),waxis);
@@ -51,10 +43,10 @@ An = Awls; Bn = Bwls;                       % choice of starting values
 iter0 = 0; iter = 0;                        % interation number
 relerror0 = Inf; relerror = Inf;            % relative error
 dE_dB = zeros(nrofh*nroff,nrofb);           % parameter error change
-y = ba2yvec(Bn,An,n,M_mh,M_ml);             % initial parameters
+y = ba2theta(Bn,An,n,M_mh,M_ml);             % initial parameters
 cost0 = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs);
 
-while (iter<iterno)&&(abs(relerror)>relvar)
+while (iter<max_iter)&&(abs(relerror)>max_err)
   iter = iter + 1;
   Ajw = P_fr*An';
 
@@ -93,7 +85,7 @@ while (iter<iterno)&&(abs(relerror)>relvar)
   y0 = y;
   y = y + dy;
 
-  [Bn,An] = BA_construct(y,n,M_mh,M_ml); 
+  [Bn,An] = theta2ba(y,n,M_mh,M_ml); 
   cost = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs);
   relerror = (cost-cost0)/cost0;
   
@@ -104,10 +96,10 @@ while (iter<iterno)&&(abs(relerror)>relvar)
      relax = relax/2;               % lowering Levenberg factor
   else
      y = y0; cost = cost0;          % restoring best result 
-     [Bn,An] = BA_construct(y,n,M_mh,M_ml);
+     [Bn,An] = theta2ba(y,n,M_mh,M_ml);
      relax = relax*10;              % increasing Levenberg factor
   end
-  fprintf('Index = %g iter = %g cost = %g rel.error = %g \n',...
-      iter, iter0, cost0, relerror0)
+  fprintf('Iter %g: index = %g, cost = %g, rel.err = %g\n',...
+           iter, iter0, cost0, relerror0)
  
 end

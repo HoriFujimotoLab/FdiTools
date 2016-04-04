@@ -1,22 +1,15 @@
-function [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+function [Bml,Aml,Bls,Als] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
 % MLFDI - Maximum Likelihood Estimation (MIMO).
-%   [Bn,An,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
-% X,Y       : input,output values of the FRF
-% freq      : discrete frequency vector
-% sX2       : variance of the input frequency domain noise 
-% sY2       : variance of the output frequency domain noise 
-% cXY       : covariance of input and output frequency domain noise 
-% n         : order of the denominator polynomial
-% mh,ml     : high and low order of the numerator polynomial
-% iterno    : number of iterations
-% relvar    : minimum relative deviation of the cost function
-% Bn,An     : solution after "iter" iterations
-% Bls,Als   : LS-solution
-% cORd      : if 'c', identification of a continuous time model
-%             if 'd', identification of a discrete time model          
-% fs        : sampling frequency (optional parameter)
-% Author    : Thomas Beauduin, KULeuven
-%             PMA division, February 2014
+%   [Bml,Aml,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+% X,Y,freq  : Input & output frequency domain data
+% sX2,sY2   : variance of X & Y frequency domain data
+% cXY       : Covariance between X & Y frequency domain data
+% n,mh,ml   : Order of the denominator/nominator polynomials
+% iterno    : Maximum number of iterations (stop criterion)
+% relvar    : Maximum relative deviation of the cost function
+% cORd, fs  : Continuous 'c' or discrete 'd' model identification
+% Bm/l,Am/l : ML/LS iterative & initial estimation solution
+% Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
 M_mh=M_mh'; M_ml=M_ml';                 % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
@@ -37,13 +30,13 @@ fprintf('\n Iterative calculation: ML solution \n');
 if GN==1,   relax = 0;                  % gradient relaxation
 else        relax = 1;
 end
-An = Als; Bn = Bls;                     % starting values choice
+Aml = Als; Bml = Bls;                   % starting values choice
 iter0 = 0; iter = 0;                    % interation number
 relerror0 = Inf; relerror = Inf;        % relative error
-y = ba2yvec(Bn,An,n,M_mh,M_ml);         % initial parameter vector
+y = ba2theta(Bml,Aml,n,M_mh,M_ml);      % initial parameter vector
 dA = zeros(nrofh*nroff,n);              % denominator change
 dB = zeros(nrofh*nroff,nrofb);          % numerator change
-cost0 = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs);
+cost0 = mlfdi_res(Bml,Aml,freq,X,Y,sX2,sY2,cXY,waxis);
 
 EX = kron(ones(nroff,1),(n:-1:0));
 W = kron(ones(1,n+1),waxis);
@@ -55,15 +48,19 @@ Q = (W.^EX);
 
 while (iter<iterno)&&(relerror>relvar)
   iter = iter + 1;
-  Num = P*Bn'; Den = P*An';
+  Num = P*Bml'; Den = P*Aml';
   
-  E = []; SE = []; index = 0;
+  % Cost function minimization p365
+  index = 0;
+  E = zeros(nrofh*nroff,1);
+  SE = zeros(nrofh*nroff,1);
   for h=1:nrofh
       i = ceil(h/nrofo); o = h-(i-1)*nrofo;
-      SE = [SE ; sqrt( sX2(:,i).*(abs(Num(:,h)).^2) ...
-                 + sY2(:,o).*(abs(Den).^2) ...
-                 - 2*real(cXY(:,h).*Den.*conj(Num(:,h))) )];
-      E = [E ; Num(:,h).*X(:,i) - Den.*Y(:,h)];
+      SE((h-1)*nroff+1:h*nroff) = ...
+            sqrt( sX2(:,i).*(abs(Num(:,h)).^2) ...
+                + sY2(:,o).*(abs(Den).^2) ...
+                - 2*real(cXY(:,h).*Den.*conj(Num(:,h))) );
+      E((h-1)*nroff+1:h*nroff) = Num(:,h).*X(:,i) - Den.*Y(:,h);
       for j=2:n+1
           WW = - Y(:,o).*P(:,j)./SE((h-1)*nroff+1:h*nroff) ...
                - E((h-1)*nroff+1:h*nroff)./(SE((h-1)*nroff+1:h*nroff).^3)...
@@ -94,8 +91,8 @@ while (iter<iterno)&&(relerror>relvar)
   y0 = y;
   y = y + dy;
 
-  [Bn,An] = BA_construct(y,n,M_mh,M_ml); 
-  cost = mlfdi_res(Bn,An,freq,X,Y,sX2,sY2,cXY,cORd,fs);
+  [Bml,Aml] = theta2ba(y,n,M_mh,M_ml); 
+  cost = mlfdi_res(Bml,Aml,freq,X,Y,sX2,sY2,cXY,waxis);
   relerror = abs(cost-cost0)/cost0;
 
   if ((cost < cost0)||(GN==1))
@@ -105,10 +102,11 @@ while (iter<iterno)&&(relerror>relvar)
       relax = relax/2;                  % lowering Levenberg factor
   else
       y = y0; cost = cost0;             % restoring best result 
-      [Bn,An] = BA_construct(y,n,M_mh,M_ml);
+      [Bml,Aml] = theta2ba(y,n,M_mh,M_ml);
       relax = relax*10;                 % increasing Levenberg factor
   end
-  fprintf('Index = %g iter = %g cost = %g rel.error = %g \n',...
-          iter,iter0,cost0,relerror0)
-      
+  fprintf('Iter %g: index = %g, cost = %g, rel.err = %g\n',...
+           iter,iter0,cost0,relerror0)   
+end
+
 end

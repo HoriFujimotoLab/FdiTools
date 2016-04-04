@@ -1,17 +1,12 @@
-function [Bg,Ag,X] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
-% GTLS - Generalized Total Least Squares Estimation (SISO).
-%   [Bg,Ag,xqsvd] = gtlsfdi(Y,X,freq,n,mh,ml,sY2,sX2,cXY)
-% X         : input values of the FRF
-% Y         : output values of the FRF
-% freq      : frequency vector
-% sX2,sY2   : variance of input/output data
-% cXY       : covariance of input/output data
-% n         : order of the denominator polynomial
-% mh,ml     : high and low order of the numerator polynomial
-% Bg,Ag     : GTLS solution in polynomial form
-% xqsvd     : QSVD solution (i.e. GTLS solution in vector form)
-% Author    : Thomas Beauduin, KULeuven
-%             PMA division, February 2014
+function [Bgtls,Agtls,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
+% GTLS - Generalized Total Least Squares Estimation (MIMO).
+%   [Bgtls,Agtls,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
+% X,Y,freq  : Input & output frequency domain data
+% sX/Y2,cXY : Measurement frequency covariance matrix data
+% n,mh,ml   : Order of the denominator/nominator polynomials
+% cORd, fs  : Continuous 'c' or discrete 'd' model identification
+% Bm/l,Am/l : ML/LS iterative & initial estimation solution
+% Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
 M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
@@ -37,27 +32,30 @@ if (min(M_mh-M_ml) < 0)
    return;
 end
 
-% Calculation of data matrix A
+% Calculation of weighted Jacobian (WreJre(Z))
+Xh = zeros(nroff,nrofh);
+Yh = zeros(nroff,nrofh);
+for h=1:nrofh
+    i = ceil(h/nrofo); o = h-(i-1)*nrofo;
+    Xh(:,h) = X(:,i); Yh(:,h) = Y(:,o);
+end
 EX = kron(ones(nrofh*nroff,1),(n:-1:0));
 W = kron(ones(nrofh,n+1),waxis);
-for i=1:nrofi
-    Yh(:,(i-1)*nrofo+1:i*nrofo) = Y;
-end
 P = (W.^EX).*kron(ones(1,n+1),Yh(:));
 
-Q = zeros(nrofh*nroff,nrofb);
 index = 1;
+Q = zeros(nrofh*nroff,nrofb);
 for h=1:nrofh
     EX = kron(ones(nroff,1),(M_mh(h):-1:M_ml(h)));
     W = kron(ones(1,M_mh(h)-M_ml(h)+1),waxis);
-    U = (W.^EX).*kron(ones(1,M_mh(h)-M_ml(h)+1),X(:,ceil(h/nrofo)));
+    U = (W.^EX).*kron(ones(1,M_mh(h)-M_ml(h)+1),Xh(:,h));
     Q(nroff*(h-1)+1:nroff*h,index:index+M_mh(h)-M_ml(h)) = U;
     index = index + M_mh(h)-M_ml(h)+1;
 end
-A = [real(P) -real(Q); imag(P) -imag(Q)];
+J = [real(P) -real(Q); imag(P) -imag(Q)];
 
-% Calculation of right weighting matrix B
-B = zeros(nrofh*(nrofp+1),nrofp+1);
+% Calculation of column covariance matrix (Cwj^1/2)
+C = zeros(nrofh*(nrofp+1),nrofp+1);
 for h=1:nrofh
     i=ceil(h/nrofo); o=h-(i-1)*nrofo;
     MytMy = zeros(n+1,n+1);
@@ -84,13 +82,13 @@ for h=1:nrofh
     MtM=[MytMy MytMx ; MytMx' MxtMx];
     cols = (1:n+1+M_mh(h)-M_ml(h)+1);
     rows = (h-1)*(nrofp+1)+1:(h-1)*(nrofp+1)+(n+1+M_mh(h)-M_ml(h)+1);
-    B(rows,cols) = chol(MtM);
+    C(rows,cols) = chol(MtM);
 end
 
-% Generalized eigenvalue problem
-X = qsvd(A,B);
-X = inv(X');
-X = X(:,nrofp+1)/X(1,nrofp+1);
-[Bg,Ag] = BA_construct(X(2:end),n,M_mh,M_ml);
+% Calculation of generalized right singular vector (Xg)
+Xg = qsvd(J,C);
+Xg = inv(Xg');
+Xg = Xg(:,nrofp+1)/Xg(1,nrofp+1);
+[Bgtls,Agtls] = theta2ba(Xg(2:end),n,M_mh,M_ml);
 
 end

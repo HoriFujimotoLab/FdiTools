@@ -1,17 +1,11 @@
 function [Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs)
 %LLSFDI - Linear Least Squares FDI (MIMO).
 %   [Bls,Als]=lsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs)
-% FRF       : matrix of measured FRF values
-% freq      : measured frequency lines vector
-% FRF_W     : matrix of frequency weighting function
-% n         : order of the denominator polynomial
-% M_mh,M_ml : high and low order of the numerator polynomials
-% Bls,Als   : LS-solution (A - row vector, B - matrix)
-% cORd      : if 'c', identification of a continuous time model
-%             if 'd', identification of a discrete time model         
-% fs        : sampling frequency (optional parameter)
-% Author    : Thomas Beauduin, KULeuven
-%             PMA division, February 2014
+% X,Y,freq  : Input & output frequency domain data
+% n,mh,ml   : Order of the denominator/nominator polynomials
+% cORd, fs  : Continuous 'c' or discrete 'd' model identification
+% Bm/l,Am/l : ML/LS iterative & initial estimation solution
+% Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
 M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
@@ -36,7 +30,7 @@ if (min(M_mh-M_ml) < 0)
    return;
 end
 
-% Calculation of data matrix A
+% Calculation of jacobian matrix J
 EX = kron(ones(nrofh*nroff,1),(n:-1:0));
 W = kron(ones(nrofh,n+1),waxis);
 for i=1:nrofi
@@ -53,11 +47,11 @@ for h=1:nrofh
     Q(nroff*(h-1)+1:nroff*h,index:index+M_mh(h)-M_ml(h)) = U;
     index = index + M_mh(h)-M_ml(h)+1;
 end
-A = [real(P(:,2:n+1)) -real(Q);imag(P(:,2:n+1)) -imag(Q)];
+J = [real(P(:,2:n+1)) -real(Q);imag(P(:,2:n+1)) -imag(Q)];
 
 % Calculation of pseudoinverse least squares solution
 b = -1*[real(P(:,1)) ; imag(P(:,1))];
-y = pinv(A)*b;
-[Bls,Als] = BA_construct(y,n,M_mh,M_ml);
+y = pinv(J)*b;
+[Bls,Als] = theta2ba(y,n,M_mh,M_ml);
 
 end

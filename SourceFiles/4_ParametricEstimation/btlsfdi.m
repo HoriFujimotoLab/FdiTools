@@ -1,93 +1,114 @@
-function [Bb,Ab,Bg,Ag] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,iter,relax,max_dev)
-%BTLSFDI Bootstrapped Total Least Squares Estimation (SISO).
-%
-% X,Y       : input & output values of the FRF
-% freq      : frequency vector
-% sX2, sY2  : variance of X & Y frequency domain noise
-% cXY       : covariance between X & Y frequency domain noise
-% n         : order of the denominator polynomial
-% mh, ml    : high & low order of the numerator polynomial
-% relax     : relaxation factor : 0 =< relax =< 1 (r=0: GTLS, r=1: full BTLS)
-% iter      : number of BLTS iterations
-% Bb,Ab     : BTLS solution
-% Bg,Ag     : GTLS solution
-% max_dev   : maximum model relative deviation (stop criterion)
-% Author    : Thomas Beauduin, KULeuven
-%             PMA division, February 2014
+function [Bb,Ab,Bg,Ag] = btlsfdi(X,Y,freq,n,M_mh,M_ml,sY2,sX2,cXY,relax,max_iter,max_err,cORd,fs)
+%BTLSFDI Bootstrapped Total Least Squares Estimation (MIMO).
+%   [Bb,Ab,Bg,Ag] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,iter,relax,max_err)
+% X,Y,freq  : Input & output frequency domain data
+% sX2,sY2   : variance of X & Y frequency domain data
+% cXY       : Covariance between X & Y frequency domain data
+% n,mh,ml   : Order of the denominator/nominator polynomials
+% relax     : Relaxation factor: 0 =< relax =< 1 (r=0: GTLS, r=1: full BTLS)
+% max_iter  : Maximum number of iterations (stop criterion)
+% max_err   : Maximum model relative error (stop criterion)
+% cORd, fs  : Continuous or discrete time model identification
+% Bb/g,Ab/g : BTLS/GTLS iterative & initial estimation solution
+% Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
-% GTLS initial guess
-[Bg,Ag,xqsvd] = gtlsfdi(Y,X,freq,n,mh,ml,sY2,sX2,cXY);
+M_mh=M_mh'; M_ml=M_ml';                 % vectorize numerator sizes
+M_mh = M_mh(:); M_ml = M_ml(:);
 
-freq=freq(:);
-w = 1i*freq*2*pi;
-nA = (n:-1:0);
-nB = (mh:-1:ml);
-Bb = Bg;
-Ab = Ag;
-xqsvd_o = xqsvd;
+nrofi = size(X,2);                      % number of inputs
+nrofo = size(Y,2);                      % number of outputs
+nrofh = nrofi*nrofo;                    % number of transfer functions
+nroff = length(freq(:));                % number of frequency lines
+nrofb = sum(M_mh-M_ml)+nrofh;           % number of numerator coefficients
+nrofp = nrofb+n;                        % number of estimated parameters
 
-%start of iterative BTLS
-tel=1; mod_change = max_dev+1;
-while (tel<=iter)&&(mod_change>max_dev)
-    Num = polyval(Bb,w);
-    Den = polyval(Ab,w);
-    scal2=(sX2.*(abs(Num).^2)+sY2.*(abs(Den).^2)...
-           -2*real(cXY.*Den.*conj(Num))).^relax;
-    scal = sqrt(scal2);
-    Ys=Y./scal; Xs=X./scal;
-    sX2s = sX2./scal2;
-    sY2s = sY2./scal2;
-    cXYs = cXY./scal2;
+% Calculation of initial values for iterative process
+fprintf(' \n Initial calculation: GTLS solution \n')
+[Bg,Ag,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs);
 
-    A = (kron(w,ones(size(nA)))...
-        .^kron(ones(size(w)),nA)).*kron(Ys,ones(size(nA)));
-    A = [A -(kron(w,ones(size(nB)))...
-        .^kron(ones(size(w)),nB)).*kron(Xs,ones(size(nB)))];
-    A = [real(A);imag(A)];
+% Calculation of iterative parameter estimation
+fprintf('\n Iterative calculation: BTLS solution \n');
+Ab = Ag; Bb = Bg;                   % starting values choice
+iter = 0;                           % interation number
+err = max_err + 1;                  % model relative error
+Xg0 = [1;ba2theta(Bg,Ag,n,M_mh,M_ml)];
 
-    MytMy = zeros(n+1,n+1);
-    MxtMx = zeros(mh-ml+1,mh-ml+1);
-    MytMx = zeros(n+1,mh-ml+1);
+while (iter<=max_iter)&&(err>max_err)
+    iter = iter+1;
+    Den = polyval(Ab,waxis);
+    Num = zeros(nroff,nrofh);
+    for h=1:nrofh, Num(:,h) = polyval(Bb(h,:),waxis); end
+    
+    % Calculation of weighted Jacobian (WreJre(Z))
+    Xh = zeros(nroff,nrofh); 
+    Yh = zeros(nroff,nrofh);
+    for h=1:nrofh
+        i = ceil(h/nrofo); o = h-(i-1)*nrofo;
+        SEr = sqrt((sX2(:,i).*(abs(Num(:,h)).^2)...
+                  + sY2(:,o).*(abs(Den).^2)...
+                  - 2*real(cXY(:,h).*Den.*conj(Num(:,h)))).^relax);
+        Xh(:,h) = X(:,i)./SEr; Yh(:,h) = Y(:,o)./SEr;
+    end
+    EX = kron(ones(nrofh*nroff,1),(n:-1:0));
+    W = kron(ones(nrofh,n+1),waxis);
+    P = (W.^EX).*kron(ones(1,n+1),Yh(:));
+    
+    index = 1;
+    Q = zeros(nrofh*nroff,nrofb);
+    for h=1:nrofh
+        EX = kron(ones(nroff,1),(M_mh(h):-1:M_ml(h)));
+        W = kron(ones(1,M_mh(h)-M_ml(h)+1),waxis);
+        U = (W.^EX).*kron(ones(1,M_mh(h)-M_ml(h)+1),Xh(:,h));
+        Q(nroff*(h-1)+1:nroff*h,index:index+M_mh(h)-M_ml(h)) = U;
+        index = index + M_mh(h)-M_ml(h)+1;
+    end
+    J = [real(P) -real(Q); imag(P) -imag(Q)];
 
-    for (i=n:-1:0)
-        for (j=n:-1:0)
-            MytMy(n-i+1,n-j+1) = real(((-1)^j)*2*sum(w.^(i+j).*sY2s));
-        end;
-    end;
+    % Calculation of column covariance matrix (Cwj^1/2)
+    C = zeros(nrofh*(nrofp+1),nrofp+1);
+    for h=1:nrofh
+        i=ceil(h/nrofo); o=h-(i-1)*nrofo;
+        MytMy = zeros(n+1,n+1);
+        MxtMx = zeros(M_mh(h)-M_ml(h)+1,M_mh(h)-M_ml(h)+1);
+        MytMx = zeros(n+1,M_mh(h)-M_ml(h)+1);
+        SEr2 = ( sX2(:,i).*(abs(Num(:,h)).^2)...
+              + sY2(:,o).*(abs(Den).^2)...
+              - 2*real(cXY(:,h).*Den.*conj(Num(:,h)))).^relax;
+        for p=n:-1:0
+            for q=n:-1:0
+                MytMy(n-p+1,n-q+1) = ...
+                2*real(((-1)^q)*sum(waxis.^(p+q).*(sY2(:,o)./SEr2)));
+            end
+        end
+        for p=M_mh(h):-1:M_ml(h)
+            for q=M_mh(h):-1:M_ml(h)
+                MxtMx(M_mh(h)-p+1,M_mh(h)-q+1) = ...
+                2*real(((-1)^q)*sum(waxis.^(p+q).*(sX2(:,i)./SEr2)));
+            end
+        end
+        for p=n:-1:0
+            for q=M_mh(h):-1:M_ml(h)
+                MytMx(n-p+1,M_mh(h)-q+1) = ...
+                -2*real(((-1)^q)*sum(waxis.^(p+q).*(cXY(:,h)./SEr2)));
+            end
+        end
+        MtM=[MytMy MytMx ; MytMx' MxtMx];
+        cols = (1:n+1+M_mh(h)-M_ml(h)+1);
+        rows = (h-1)*(nrofp+1)+1:(h-1)*(nrofp+1)+(n+1+M_mh(h)-M_ml(h)+1);
+        C(rows,cols) = chol(MtM);
+    end
 
-    for (i=mh:-1:ml)
-        for (j=mh:-1:ml)
-            MxtMx(mh-i+1,mh-j+1) = real(((-1)^j)*2*sum(w.^(i+j).*sX2s));
-        end;
-    end;
-
-    for (i=n:-1:0)
-        for (j=mh:-1:ml)
-            MytMx(n-i+1,mh-j+1) =  -real(((-1)^j)*2*sum(w.^(i+j).*cXYs));
-        end;
-    end;
-
-    MtM=[MytMy MytMx ; MytMx' MxtMx];
-    M = chol(MtM);
-  
-    %qsvd solution
-    [Ua,Un,Sa,Sn,xqsvd]=qsvd(A,M);
-    nt=n+1+mh-ml+1;
-    xqsvd=inv(xqsvd');
-    xqsvd=xqsvd(:,nt)/xqsvd(1,nt);
-    Ab = xqsvd(1:n+1)';
-    Bb = [zeros(1,n-mh) xqsvd(n+2:nt)' zeros(1,ml)];
-    mod_change=max(abs((xqsvd_o-xqsvd)./xqsvd));
-    xqsvd_o=xqsvd;
-
-    Num = polyval(Bb,w);
-    Den = polyval(Ab,w);
-    T = abs(Num.*X - Den.*Y).^2;
-    scal2_n = ( sX2.*(abs(Num).^2) + sY2.*(abs(Den).^2) ...
-              - 2*real(cXY.*Den.*conj(Num)) );
-    cost = sum(T./scal2)/sum(scal2_n./scal2);
-    fprintf('BTLS-iteration %g of %g; cost = %g; max. model change %g \n'...
-            ,tel,iter,cost,mod_change)
-    tel = tel+1;
+    % Calculation of generalized right singular vector (Xg)
+    Xg = qsvd(J,C);
+    Xg = inv(Xg');
+    Xg = Xg(:,nrofp+1)/Xg(1,nrofp+1);
+    [Bb,Ab] = theta2ba(Xg(2:end),n,M_mh,M_ml);
+    err = max(abs((Xg0 - Xg)./Xg));
+    Xg0 = Xg;
+    cost = btlsfdi_res(Bb,Ab,freq,X,Y,sX2,sY2,cXY,relax,waxis);
+    
+    fprintf('Iter %g: index = %g, cost = %g, rel.err = %g\n',...
+    iter,iter,cost,err)  
 end
+
 end
