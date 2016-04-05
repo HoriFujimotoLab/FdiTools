@@ -1,0 +1,254 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FDI SELECTION/VALIDATION:
+% -------------------------
+% Descr.:   selection of model set and validation
+% System:   yamada customizable motor bench
+% Author:   Thomas Beauduin, University of Tokyo, 2016
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clear all; close all; clc;
+load('data/setupIdent/Dmsin3_A10.mat');
+r0=(1:nrofs); m=5; rm=(nrofs*m+1:(m+1)*nrofs);
+
+%% STEP 1: DATA VIZUALISATION
+% plot full measurement (number of in/out)
+% result: trend=0/1, trans=nr, miss=0/1, offset=0/1 (1 not always good)
+% ranges r0, rn
+% plot data and table with necessary data for next steps
+% consider function plotdata (then include ranges in here).
+%% STEP 1: DATA TREATMENT
+% pretreat data and vizualize in time domain
+trans = 1; trend = 0;
+[inp,time]=pretreat(iq_adx,nrofs,fs,trans,trend); 
+[out,time]=pretreat([theta_mx,-theta_my],nrofs,fs,trans,trend); % SIMO
+%[out,time]=pretreat(theta_mx,nrofs,fs,trans,trend); % SISO
+hfig=figure;
+subplot(211)
+    plot(time(r0),inp(rm,:))
+    title('input data')
+    legend('iq ad')
+subplot(212)
+    plot(time(r0),out(rm,:))
+    title('output data')
+    legend('theta mx','theta my')
+    xlabel('time [s]')
+pubfig(hfig);
+
+%% STEP 2: NON-PARAMETRIC ESTIMATION
+% fft data and vizualize in freq domain position data
+[X,Y,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(inp,out,fs,fl,fh,df);
+% hfig=figure;
+% plotfrf(freq,FRFs);
+% pubfig(hfig);
+% break
+
+% hfig=figure;
+% for i=1:nrofi
+%     for o=1:nrofo
+%         subplot(2*nrofi,nrofo,((i-1)*2*nrofo)+o)
+%         semilogx(freq,smooth(dbm(FRFs(:,i,o))),freq,dbm(sCR(:,i,o)),'r');
+%             ylabel('Magnitude [dB]')
+%             xlim([fl,fh])
+%             title(sprintf('H_{%dx%d}',i,o))
+%         subplot(2*nrofi,nrofo,((i-1)*2*nrofo)+o+nrofo)
+%         semilogx(freq,smooth(phs(FRFs(:,i,o))));
+%             xlabel('Frequency [Hz]')
+%             ylabel('Phase [deg]')
+%             xlim([fl,fh]);
+%     end
+% end
+% hfig=pubfig(hfig);
+
+hfig=figure;
+subplot(221), semilogx(freq,smooth(dbm(FRFs(:,1))),freq,dbm(sCR(:,1)),'r');
+    title('Motor-side')
+    ylabel('Magnitude [dB]')
+    xlim([fl,fh])
+subplot(223), semilogx(freq,phs(FRFs(:,1),1))
+    xlabel('Frequency [Hz]')
+    ylabel('Phase [deg]')
+    xlim([fl,fh]);
+subplot(222), semilogx(freq,smooth(dbm(FRFs(:,2))),freq,dbm(sCR(:,2)),'r');
+    title('Load-side')
+    ylabel('Magnitude [dB]')
+    xlim([fl,fh])
+subplot(224), semilogx(freq,phs(FRFs(:,2)))
+    xlabel('Frequency [Hz]')
+    ylabel('Phase [deg]')
+    xlim([fl,fh])
+hfig=pubfig(hfig);
+    hfig.YTick={'','deg','','deg'};
+%expfig('plot/FRFfdi','-pdf',hfig);
+%Note: PSS presentation: compare servo mag/phs vs own mag/phs
+%      + add a 3e graph coh vs SNR (with 10dB line), and sCR/sX2/sY2/cXY
+
+%% STEP 3A - PARAMETRIC ESTIMATION (SIMO)
+% synchronised periodic expiriment with maximum-likelihood estimator
+n=4;                        % model order of denominator polynomial
+mh=[3,1]; ml=[0,0];         % model orders of numerator polynomial
+relvar=1e-10;               % relative variation of costfunction (stop)
+iter=5e2;                   % maximum number of iterations (stop)
+GN = 0;                     % Levenberg-Marquardt optimization
+cORd = 'c';                 % continuous model identifaction
+FRF_W = ones(size(FRFs));   % least squares weigting function
+relax = 1;                  % relaxation factor for btls
+
+% MIMO NLS
+[Bn_nls,An_nls,Bn_wls,An_wls] = ...
+nlsfdi(FRFs,freq,FRF_W,n,mh,ml,iter,relvar,GN,cORd,fs);
+    SYS.nls(:,1) = tf(Bn_nls(1,:),An_nls); 
+    FRF.nls(:,1) = squeeze(freqresp(SYS.nls(:,1),freq*2*pi));
+    SYS.wls(:,1) = tf(Bn_wls(1,:),An_wls); 
+    FRF.wls(:,1) = squeeze(freqresp(SYS.wls(:,1),freq*2*pi));
+    SYS.nls(:,2) = tf(Bn_nls(2,:),An_nls); 
+    FRF.nls(:,2) = squeeze(freqresp(SYS.nls(:,2),freq*2*pi));
+    SYS.wls(:,2) = tf(Bn_wls(2,:),An_wls); 
+    FRF.wls(:,2) = squeeze(freqresp(SYS.wls(:,2),freq*2*pi));
+figure;
+subplot(221),semilogx(freq,[dbm(FRFs(:,1)),dbm(FRF.wls(:,1)),dbm(FRF.nls(:,1))])
+title('NLS MIMO')
+subplot(223),semilogx(freq,[phs(FRFs(:,1)),phs(FRF.wls(:,1)),phs(FRF.nls(:,1))])
+subplot(222),semilogx(freq,[dbm(FRFs(:,2)),dbm(FRF.wls(:,2)),dbm(FRF.nls(:,2))])
+subplot(224),semilogx(freq,[phs(FRFs(:,2)),phs(FRF.wls(:,2)),phs(FRF.nls(:,2))])
+
+% MIMO ML
+[Bn_ml,An_ml,Bn_ls,An_ls] = ...
+mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iter,relvar,GN,cORd,fs);
+    SYS.ml(:,1) = tf(Bn_ml(1,:),An_ml);
+    FRF.ml(:,1) = squeeze(freqresp(SYS.ml(:,1),freq*2*pi));
+    SYS.ls(:,1) = tf(Bn_ls(1,:),An_ls);
+    FRF.ls(:,1) = squeeze(freqresp(SYS.ls(:,1),freq*2*pi));
+    SYS.ml(:,2) = tf(Bn_ml(2,:),An_ml);
+    FRF.ml(:,2) = squeeze(freqresp(SYS.ml(:,2),freq*2*pi));
+    SYS.ls(:,2) = tf(Bn_ls(2,:),An_ls);
+    FRF.ls(:,2) = squeeze(freqresp(SYS.ls(:,2),freq*2*pi));
+figure;
+subplot(221),semilogx(freq,[dbm(FRFs(:,1)),dbm(FRF.ls(:,1)),dbm(FRF.ml(:,1))])
+title('MIMO ML')
+subplot(223),semilogx(freq,[phs(FRFs(:,1)),phs(FRF.ls(:,1)),phs(FRF.ml(:,1))])
+subplot(222),semilogx(freq,[dbm(FRFs(:,2)),dbm(FRF.ls(:,2)),dbm(FRF.ml(:,2))])
+subplot(224),semilogx(freq,[phs(FRFs(:,2)),phs(FRF.ls(:,2)),phs(FRF.ml(:,2))])
+
+% % MIMO BTLS
+% [Bn_btls,An_btls,Bn_gtls,An_gtls] = ...
+% btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,relax,iter,relvar,cORd,fs);
+%     SYS.btls(:,1) = tf(Bn_btls(1,:),An_btls); 
+%     FRF.btls(:,1) = squeeze(freqresp(SYS.btls(:,1),freq*2*pi));
+%     SYS.gtls(:,1) = tf(Bn_gtls(1,:),An_gtls); 
+%     FRF.gtls(:,1) = squeeze(freqresp(SYS.gtls(:,1),freq*2*pi));
+%     SYS.btls(:,2) = tf(Bn_btls(2,:),An_btls); 
+%     FRF.btls(:,2) = squeeze(freqresp(SYS.btls(:,2),freq*2*pi));
+%     SYS.gtls(:,2) = tf(Bn_gtls(2,:),An_gtls); 
+%     FRF.gtls(:,2) = squeeze(freqresp(SYS.gtls(:,2),freq*2*pi));
+% figure;
+% subplot(221),semilogx(freq,[dbm(FRFs(:,1)),dbm(FRF.gtls(:,1)),dbm(FRF.btls(:,1))])
+% title('MIMO BTLS')
+% subplot(223),semilogx(freq,[phs(FRFs(:,1)),phs(FRF.gtls(:,1)),phs(FRF.btls(:,1))])
+% subplot(222),semilogx(freq,[dbm(FRFs(:,2)),dbm(FRF.gtls(:,2)),dbm(FRF.btls(:,2))])
+% subplot(224),semilogx(freq,[phs(FRFs(:,2)),phs(FRF.gtls(:,2)),phs(FRF.btls(:,2))])
+
+
+% hfig=figure;
+% subplot(221), semilogx(freq,[dbm(FRFs),dbm(FRF.wls),dbm(FRF.nls)])
+% %hold on, semilogx(freq,dbm(FRF.ls),'k--')    % starting values
+% %hold on, semilogx(freq,dbm(FRFn),'m--')     % uncertainty level
+%     title('Deterministic Estimators')
+%     ylabel('Amplitude [dB]') 
+%     legend('FRF','WLS','NLS','$I_{LS}$','FRFn')
+%     xlim([10,300])
+% subplot(223), semilogx(freq,[phs(FRFs),phs(FRF.wls),phs(FRF.nls)])
+% hold on, semilogx(freq,phs(FRF.ls),'k--')    % starting values
+%     ylabel('Phase [deg]')
+%     xlabel('frequency [Hz]')
+%     xlim([10,300])
+% subplot(222), semilogx(freq,[dbm(FRFs),dbm(FRF.ml),dbm(FRF.btls)])
+% hold on, semilogx(freq,dbm(FRF.gtls),'k--')  % starting values
+% hold on, semilogx(freq,dbm(sCR),'m--')      % uncertainty lowerbound
+%     ylabel('Amplitude [dB]')
+%     legend('FRF','MLE','BTLS','$I_{GTLS}$','sCR')
+%     title('Stochastic Estimators')
+%     xlim([10,300])
+% subplot(224), semilogx(freq,[phs(FRFs),phs(FRF.ml),phs(FRF.btls)])
+% hold on, semilogx(freq,phs(FRF.gtls),'k--')  % starting values
+%     ylabel('Phase [deg]')
+%     xlabel('frequency [Hz]')
+%     xlim([10,300])
+% %pubfig(hfig);
+
+% RESID
+[lags,corr,cb50,frac50,tag,cb95,frac95] = residtest(inp,out,freq,FRFs,SYS,sCR,fs);
+hfig=figure; % fraction above the x%-percentile confidence bound
+    plot(lags,corr(:,:,1),'*',lags,cb95,'k',lags,cb50,'k--')
+    title(strcat('p_{>95%}:',num2str(frac95(:,1)),...
+          ' _ - _ p_{>50%}:',num2str(frac50(:,1))));
+    xlabel('Lag number'), ylabel('Amplitude [dB]')
+    ylim([0,1.5])
+    legend([tag(:,1);'frac_{95%}';'frac_{50%}'])
+%hfig=pubfig(hfig);
+%    hfig.LegendLoc='northwest';
+%expfig('resid1','-pdf',hfig);
+hfig=figure; % fraction above the x%-percentile confidence bound
+    plot(lags,corr(:,:,2),'*',lags,cb95,'k',lags,cb50,'k--')
+    title(strcat('p_{>95%}:',num2str(frac95(:,2)),...
+          ' _ - _ p_{>50%}:',num2str(frac50(:,2))));
+    xlabel('Lag number'), ylabel('Amplitude [dB]')
+    ylim([0,1.5])
+    legend([tag(:,1);'frac_{95%}';'frac_{50%}'])
+%hfig=pubfig(hfig);
+%    hfig.LegendLoc='northwest';
+%expfig('resid1','-pdf',hfig);
+
+% COST
+nrofp = length(inp)/fs*df;
+[cost,intv,tag] = costtest(X,Y,freq,sX2,sY2,cXY,SYS,relax,nrofp);
+hfig=figure;
+subplot(211),
+bar(cost,0.8), hold on
+    line([0,length(cost)+1],[intv(2),intv(2)],'Color','k','LineStyle','--')
+    set(gca,'xticklabel',tag)
+    title('Estimator Selection: Residual Cost')
+    legend('H_{11}','H_{12}','noise')
+    ylim([0,intv(2)*5])
+hfig=pubfig(hfig);
+    hfig.LegendLoc='northeastoutside';
+%expfig('cost31.pdf',hfig);
+
+% CHI2
+[confid,var,tag] = chi2test(X,Y,freq,FRFs,sCR,SYS);
+hfig=figure;
+subplot(211), h=1;
+    loglog(freq,confid(:,:,h)), hold on
+    loglog(freq,var(:,h),'k')
+    legend(tag(:,h),'crlb')
+subplot(212), h=2;
+    loglog(freq,confid(:,:,h)), hold on
+    loglog(freq,var(:,h),'k')
+    legend(tag(:,h),'crlb') 
+%pubfig(hfig);
+
+
+%SELECT
+[B420,A420] = mlfdi(X,Y,freq,sX2,sY2,cXY,4,[2,0],ml,iter,relvar,GN,cORd,fs);
+    SYS.n420(:,1) = tf(B420(1,:),A420);
+    FRF.n420(:,1) = squeeze(freqresp(SYS.n420(:,1),freq*2*pi));
+    SYS.n420(:,2) = tf(B420(2,:),A420);
+    FRF.n420(:,2) = squeeze(freqresp(SYS.n420(:,2),freq*2*pi));
+[B431,A431] = mlfdi(X,Y,freq,sX2,sY2,cXY,4,[3,1],ml,iter,relvar,GN,cORd,fs);
+    SYS.n431(:,1) = tf(B431(1,:),A431);
+    FRF.n431(:,1) = squeeze(freqresp(SYS.n431(:,1),freq*2*pi));
+    SYS.n431(:,2) = tf(B431(2,:),A431);
+    FRF.n431(:,2) = squeeze(freqresp(SYS.n431(:,2),freq*2*pi));
+[B531,A531] = mlfdi(X,Y,freq,sX2,sY2,cXY,5,[3,1],ml,iter,relvar,GN,cORd,fs);
+    SYS.n531(:,1) = tf(B531(1,:),A531);
+    FRF.n531(:,1) = squeeze(freqresp(SYS.n420(:,1),freq*2*pi));
+    SYS.n531(:,2) = tf(B531(2,:),A531);
+    FRF.n531(:,2) = squeeze(freqresp(SYS.n531(:,2),freq*2*pi));
+[B642,A642] = mlfdi(X,Y,freq,sX2,sY2,cXY,6,[4,2],ml,iter,relvar,GN,cORd,fs);
+    SYS.n642(:,1) = tf(B642(1,:),A642);
+    FRF.n642(:,1) = squeeze(freqresp(SYS.n642(:,1),freq*2*pi));
+    SYS.n642(:,2) = tf(B642(2,:),A642);
+    FRF.n642(:,2) = squeeze(freqresp(SYS.n642(:,2),freq*2*pi));
+
+break
+%% STEP 4D: SIMULATION
+% estim friction model for setup and combine with linear ident model
+% for motion simulation vs. experiments
