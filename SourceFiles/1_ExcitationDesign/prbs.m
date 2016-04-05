@@ -1,6 +1,6 @@
-function [bitseries,nextstnum]=prbs(log2N,bitno,startnum)
+function [bitseries,X,freq,nextstnum]=prbs(fs,log2N,bitno,startnum)
 %PRBS - pseudo-random binary sequence, PRBS.
-%
+%   [bitseries,X,freq,nextstnum]=prbs(log2N,bitno,startnum,fs)
 % bitseries     : generated bit series (values +1,-1).
 %                 Column vector, length: bitno, default length: 2^log2N-1
 % nextstnum     : startnum to be used if continued sequence generation
@@ -10,8 +10,8 @@ function [bitseries,nextstnum]=prbs(log2N,bitno,startnum)
 % Algorithm     : Maximum Length Binary sequence (MLBS)
 % Author        : Thomas Beauduin, KULeuven, 2014
 %%%%%
-if nargin<2, bitno=2^log2N-1; end
-if nargin<3, startnum=2^log2N-1; end
+if nargin<3, bitno=2^log2N-1; end
+if nargin<4, startnum=2^log2N-1; end
 
 startnum=round(rem(abs(startnum-1),2^log2N-1))+1;
 stn=startnum; reg=zeros(log2N,1);
@@ -57,5 +57,8 @@ for i=1:bitno
   bitseries(i)=-prod(reg(multind));
   reg=[bitseries(i);reg(1:log2N-1)];
 end
-nextstnum=sum((reg/2+1/2).*(2.0.^[0:log2N-1]'));
+nextstnum=sum((reg/2+1/2).*(2.0.^(0:log2N-1)'));
+
+X = t2f(bitseries,length(bitseries));
+freq = fs*(0:1:length(bitseries)/2-1)'/length(bitseries);
 end

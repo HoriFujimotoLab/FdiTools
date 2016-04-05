@@ -1,18 +1,15 @@
 function [x,time,X,freq] = swept(fs,fl,fh,df)
 %SWEPT - Swept-Sine excitation signal generation.
-%
-% fs        : sample frequency [Hz]
-% fl        : lower limit of selected frequency range [Hz]
-% fh        : upper limit of selected frequency range [Hz]
-% df        : distance between spectral lines
-% x         : swept sine signal
-% time      : time vector [s]
+%   [x,time,X,freq] = swept(fs,fl,fh,df)
+% fs, df    : sampling frequency & resolution [Hz]
+% fl,fh     : lower/upper frequency range limit [Hz]
+% x, time   : swept sine signal time domain [s]
 % Algorithm : x(t) = Asin((at+b)t)   for  0<=t<T
-% Author    : Thomas Beauduin, KULeuven, 2014
+% Author    : Thomas Beauduin, KULeuven, PMA, 2014
 %%%%%
 
 nrofs = fs/df;
-time = [0:(nrofs-1)]'/fs;
+time = (0:(nrofs-1))'/fs;
 k1 = ceil(fl/df); k2 = floor(fh/df);
 
 a = pi*(k2-k1)*df^2;
