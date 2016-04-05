@@ -1,66 +1,62 @@
-function [Lags,Corr,CB,Fraction,Tag] = residtest(freq,FRFs,FRF,sCR,nrofp)
-% RESID - Identification Residuals for validation
-%
-% freq      : freq vector of measurement
-% FRFs      : FRF measurement
-% FRF       : FRF of fitted model
-% sCR       : Cramer-Rao underbound of measurement
-% norfp     : nr of periods in measurment
-% Lags      : lags for auto_corr ploting
-% Corr      : Auto correlation
-% CB        : Confindence Bounds
-% Fraction  : fraction under confidence bounde
-% Author    : Thomas Beauduin, KULeuven, 2014
-%
-% see AUTO-CORRELATION figure book, fig.11-8
+function [lags,corr,cb50,frac50,tag,cb95,frac95] = residtest(x,y,freq,FRF,SYS,sCR,fs)
+% RESID - Identification whiteness residuals test (MIMO).
+%   [lags,corr,cb50,frac50,tag,cb95,frac95] = residtest(x,y,freq,FRF,SYS,sCR,fs)
+% x,y,freq  : Input & output time domain data
+% FRF,SYS   : FRF measurement & structured estim models
+% sCR       : Cramer-Rao lower bound of measurement
+% lags,corr : frequency lags & auto_corr matrix
+% cb50/95   : Model residual 50/95%-confindence bounds
+% frac,tag  : fraction under confidence bounds & model name
+% Author    : Thomas Beauduin, KULeuven, PMA division, 2014
+%%%%%
+nroff = length(freq);               % number of frequency lines
+nrofi = size(x,2);                  % number of inputs vectors
+nrofo = size(y,2);                  % number of output vectors
+nrofh = nrofi*nrofo;                % number of transfer functions
+nrofm = length(fieldnames(SYS));    % number of system models
+lags = (-nroff+1:nroff-1);          % whiteness frequency lags
+nrofp = length(x(:,1))/fs*(freq(2)-freq(1));
 
-nroff = length(freq);
-Res=zeros(1,nroff);
-Fraction = zeros(1,2);
-Lags = (-nroff+1:nroff-1);
-Tag = fieldnames(FRF);
-nrofm = length(Tag);
-
-% Confidence Bounds
+% Calculation of scaling parameters
 scale0 = (nrofp-2)/(nrofp-1);
 scale = (nrofp-5/3)/(nrofp-11/12);
-Conf_scale0=scale0*((nrofp-1)^(3/2)/(nrofp-2)/(nrofp-3)^(1/2));
-Conf_scale=scale*(nrofp-1)/(nrofp-2);
+cb_scale0 = scale0*((nrofp-1)^(3/2)/(nrofp-2)/(nrofp-3)^(1/2));
+cb_scale = scale*(nrofp-1)/(nrofp-2);
+cb_scale = cb_scale*ones(size(lags));
+cb_scale(nroff) = cb_scale0;
+ac_scale = scale*ones(size(lags));
+ac_scale(nroff) = scale0;
 
-% std auto-correlation
-p50 = sqrt(-log(1-0.5));
-p95 = sqrt(-log(1-0.95));
-ConfScale = Conf_scale*ones(size(Lags));
-ConfScale(nroff) = Conf_scale0;
-Conf_Bound = repmat(ConfScale./(nroff-abs(Lags)).^(0.5),[2,1]);
-Conf_Bound(1,:) = p50*Conf_Bound(1,:);
-Conf_Bound(2,:) = p95*Conf_Bound(2,:);
-CB=Conf_Bound;
+% Calculation of confidence Bounds
+p50 = sqrt(-log(1-0.5)); p95 = sqrt(-log(1-0.95));
+conf_bound = repmat(cb_scale./(nroff-abs(lags)).^(0.5),[2,1]);
+cb50 = p50*conf_bound(1,:);
+cb95 = p95*conf_bound(2,:);
 
-% Auto-correlation
-FRF_c = struct2cell(FRF);
-Select = (1:2*nroff-1);
-Select(nroff) = [];
-for m = 1:nrofm
-    FRFm = FRF_c{m};
-    for f = 1:nroff
-        Res(f) = (FRFs(f)-FRFm(f))./sCR(f).^0.5;    % Residuals
+% Calculation of auto-correlation & fraction
+SYS_c = struct2cell(SYS);
+select = (1:2*nroff-1); 
+select(nroff) = [];
+tag = cell(nrofm,nrofh);
+frac50 = zeros(nrofm,nrofh);
+frac95 = zeros(nrofm,nrofh);
+corr = zeros(length(lags),nrofm,nrofh);
+for h=1:nrofh
+    for m = 1:nrofm
+        FRFsys = squeeze(freqresp(SYS_c{m}(:,h),freq*2*pi));
+        res = (FRF(:,h)-FRFsys)./sCR(:,h).^0.5;
+        auto_corr = xcorr(res','unbiased').*ac_scale;
+        frac50(m,h) = length(find(abs(auto_corr(select)) - ...
+                              cb50(select) > 0)) / (2*nroff-2)*100;
+        frac95(m,h) = length(find(abs(auto_corr(select)) - ...
+                              cb95(select) > 0)) / (2*nroff-2)*100;
+        corr(:,m,h) = squeeze(abs(auto_corr));
     end
-    Auto_Corr = xcorr(Res,'unbiased');  % ./nroff auto-correlation
-    TheScale = scale*ones(size(Lags));
-    TheScale(nroff) = scale0;
-    Auto_Corr = Auto_Corr .* TheScale;
-    Corr(m,:)=squeeze(abs(Auto_Corr));         % abs-corr (plot)
-    
-    Fraction(m,1) = length(find(abs(Auto_Corr(Select)) - ...
-                          Conf_Bound(1,Select) > 0)) / (2*nroff-2)*100;
-    Fraction(m,2) = length(find(abs(Auto_Corr(Select)) - ...
-                          Conf_Bound(2,Select) > 0)) / (2*nroff-2)*100;
+   [frac50(:,h),index] = sort(frac50(:,h),'descend');
+    frac95(:,h) = frac95(index,h);
+    corr(:,:,h) = corr(:,index,h);
+    tag(:,h) = fieldnames(SYS);
+    tag(:,h) = tag(index,h);
 end
 
-[Fraction(:,1),index]=sort(Fraction(:,1),'descend');
-Fraction(:,2)=Fraction(index,2);
-Corr=Corr(index,:);
-Tag = Tag(index);
 end
-

@@ -5,10 +5,11 @@
 % Type Transforms
 % f2t      - Calculate time domain from fourrier coefficients.
 % t2f      - Calculate frequency domain from time signals.
-% dbm      - Calculate FRF magnitude in decibel (20log10).
+% dbm      - Calculate FRF magnitude in decibel (20*log10).
 % phs      - Calculate FRF phase in degree augmented with
-%            wrapping shift and glitch removal tools.
-% BA_contruct - Construct transfer function from modal parameters.
+%            note: augmented with wrapping shift and glitch removal tools.
+% theta2ba - Transform parameter vector to rational polynomial.
+% ba2theta - Transform rational polynomial to parameter vector.
 %
 % Data Calculations
 % cr_rao   - Cramer-Rao Lower Bound of parameter covariance matrix.

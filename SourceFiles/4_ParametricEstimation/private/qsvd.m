@@ -6,8 +6,7 @@ function [X,Ua,Ub,Sa,Sb]=qsvd(A,B)
 % Sa,Sb : Singular Diagonal Matrix: Sa[diag(s1,..,sm)]
 % X     : Generalized right singular vectors
 %         A = Ua*Sa*X' , B = Ub*Sb*X'
-% Author: Thomas Beauduin, KULeuven
-%         PMA division, February 2014
+% Author: Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
 % Important Notes:
 % 1. This function can only be applied to matrices
