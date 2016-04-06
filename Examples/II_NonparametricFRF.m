@@ -33,12 +33,12 @@ pause
 [X,Y,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df);
 
 figure
-subplot(221), semilogx(freq,dbm(FRFs(:,1)),freq,dbm(sCR(:,1)),'r');
+subplot(221), semilogx(freq,dbm(FRFs(:,1)),freq,dbm(FRFn(:,1)),'r');
     title('Motor-side'), ylabel('Magnitude [dB]'), xlim([fl,fh])
 subplot(223), semilogx(freq,phs(FRFs(:,1),1))
     xlabel('Frequency [Hz]'), ylabel('Phase [deg]'), xlim([fl,fh])
-subplot(222), semilogx(freq,dbm(FRFs(:,2)),freq,dbm(sCR(:,2)),'r');
+subplot(222), semilogx(freq,dbm(FRFs(:,2)),freq,dbm(FRFn(:,2)),'r');
     title('Load-side'), ylabel('Magnitude [dB]'), xlim([fl,fh])
 subplot(224), semilogx(freq,phs(FRFs(:,2)))
     xlabel('Frequency [Hz]'), ylabel('Phase [deg]'), xlim([fl,fh])
-    
+ 

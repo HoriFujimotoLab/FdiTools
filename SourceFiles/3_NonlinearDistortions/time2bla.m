@@ -1,5 +1,6 @@
 function [X,Y,FRF,freq,Gbla,sX2,sY2,cXY] = time2bla(x,y,fs,fl,fh,df)
 %TIME2BLA - Best Linear Approximation of FRF.
+%   [X,Y,FRF,freq,Gbla,sX2,sY2,cXY] = time2bla(x,y,fs,fl,fh,df)
 % x, y      : data vectors of periodic broad-band measurement
 % fs,df     : sampling frequency and frequency resolution
 % fl,fh     : lowest & highest frequency of excitated band

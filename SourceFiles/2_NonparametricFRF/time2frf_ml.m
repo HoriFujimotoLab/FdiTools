@@ -8,19 +8,18 @@ function [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df)
 % sX2,sY2   : variance of real & imaginary parts of X,Y noise
 % cXY       : covariance between real & imaginary parts of X,Y noise 
 % sCR       : cramer-rao variance on measurement FRF
-% Author    : Thomas Beauduin, KULeuven
-%             PMA division, February 2014
+% Author    : Thomas Beauduin, KULeuven, PMA, Feb-2014
 %%%%%
 [~,nrofi] = size(x);                                % number of inputs
 [~,nrofo] = size(y);                                % number of outputs
-nrofh = nrofi*nrofo;                              % number of tf's (Hxy)
+nrofh = nrofi*nrofo;                                % number of tf's (Hxy)
 nrofs = fs/df;                                      % samples per period
 nl = ceil(fl/df); nh = floor(fh/df);                % low & high freq
 freq = double((nl:1:nh)'/(nrofs/fs));               % full freq lines
 nroff = length(freq);                               % number of freq lines
 nrofp = double(floor(length(x)/nrofs));             % number of period
 
-% SIGNAL
+% Calculation of signal fft data
 INP = zeros(nroff,nrofp,nrofi); 
 OUT = zeros(nroff,nrofp,nrofo);
 Xs = zeros(nroff,nrofi); sX2 = zeros(nroff,nrofi);
@@ -58,7 +57,7 @@ for i=1:nrofi
     end
 end
 
-% NOISE
+% Calculation of noise fft data
 OUT = zeros(nroff*2,floor(nrofp/2),nrofo);
 NSE = zeros(nroff,floor(nrofp/2),nrofo);
 Yn = zeros(nroff,nrofo); FRFn = zeros(nroff,nrofh);
@@ -67,8 +66,10 @@ for o=1:nrofo
         Op = fft(y(1+(p-1)*nrofs*2:p*nrofs*2,o));   % fft of 2x period
         OUT(:,p,o) = Op(2*nl:2*nh+1);               % fft dc-term removal
     end
-    for f=2:2:nroff*2                               % uneven freq lines
-        NSE(f/2,:,o) = OUT(f,:,o);
+    index = 1;
+    for f=1:2:nroff*2                               % uneven freq lines
+        NSE(index,:,o) = OUT(f,:,o);
+        index = index + 1;
     end
     Yn(:,o) = mean(NSE(:,:,o),2);
 end
