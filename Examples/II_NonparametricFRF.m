@@ -7,7 +7,7 @@
 % Author:   Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
-load('MultisineTypeA.mat');     % schoeder multisine experiment
+load('private/MultisineTypeA.mat');     % schoeder multisine experiment
 
 %% STEP 1: TIME TREATMENT
 % remove transient periods, offsets and trends

@@ -7,7 +7,7 @@
 % Author:   Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
-load('MultisineTypeB.mat');     % random odd-odd multisine experiment
+load('private/MultisineTypeB.mat');     % random odd-odd multisine experiment
 
 % Time treatment: remove transients/offsets/trends
 trans = 1;                      % number of transient periods
