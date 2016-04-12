@@ -31,4 +31,4 @@ subplot(212), semilogx(freql,dbm(Yl(:,2)),freqe,dbm(Ye(:,2)),...
     ylabel('magnitude [dB]'), xlim([fl,fh])
     
 % NOTE: important low-frequent odd-distortions present in data
-%       due to non-linear rolling friction in the bearings 
+%       probably due to non-linear rolling friction in the bearings 

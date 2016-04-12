@@ -16,5 +16,5 @@ a = pi*(k2-k1)*df^2;
 b = 2*pi*k1*df;
 x = sin((a*time+b).*time);
 
-X=t2f(x,nrofs);
-freq=fs*(0:1:nrofs/2-1)'/nrofs; 
+X = t2f(x,nrofs);
+freq = fs*(0:1:nrofs/2-1)'/nrofs;
