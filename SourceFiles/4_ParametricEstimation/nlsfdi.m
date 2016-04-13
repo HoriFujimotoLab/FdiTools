@@ -1,6 +1,6 @@
-function [Bn,An,Bwls,Awls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
+function [Hnls,Hwls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
 % NLLSFDI - Non-linear Least Squares FDI (MIMO).
-%   [Bn,An,Bwls,Awls]=nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
+%   [Hnls,Hwls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
 % FRF,freq  : Transfer function frequency domain data
 % FRF_W     : matrix of frequency weighting function
 % n,mh,ml   : Order of the denominator/nominator polynomials
@@ -11,39 +11,33 @@ function [Bn,An,Bwls,Awls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,
 % Bn/w,An/w : NLS/WLS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
-M_mh=M_mh'; M_ml=M_ml';         % vectorize numerator sizes
+nrofi = size(M_mh,2);           % number of inputs
+nrofo = size(M_mh,1);           % number of outputs
+nrofh = nrofi*nrofo;            % number of transfer functions
+nroff = length(freq(:));        % number of frequency lines
+nrofb = sum(M_mh-M_ml)+nrofh;   % number of numerator coefficients
+nrofp = nrofb+n;                % number of estimated parameters
+
+% Calculation of initial values for iterative process
+fprintf(' \n Initial calculation: LS solution \n')
+[Hwls,waxis] = wlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs);
+
+M_mh = M_mh'; M_ml = M_ml';     % vectorize numerator sizes
 M_mh = M_mh(:); M_ml = M_ml(:);
 
-nrofh = length(M_ml);           % number of transfer functions (2)
-nroff = length(freq(:));        % number of frequency lines (240)
-nrofb = sum(M_mh-M_ml)+nrofh;   % number of numerator coefficients (4)
-nrofp = nrofb+n;                % number of estimated parameters (8)
-
-% INITIAL WLSFDI 
-% initial values estimate for iterative process
-fprintf(' \n Initial calculation: LS solution \n')
-[~,Als,waxis] = wlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs);
-
-EX = kron(ones(nroff,1),(n:-1:0));
-W = kron(ones(1,n+1),waxis);
-P_fr = (W.^EX);                             % First P-matrix
-Q_fr = (W.^EX);                             % First Q-matrix
-
-Ajw = P_fr*Als';
-FRF_WW = FRF_W./kron(ones(1,nrofh),abs(Ajw)); % improved weigthing
-[Bwls,Awls,waxis] = wlsfdi(FRF,freq,FRF_WW,n,M_mh,M_ml,cORd,fs);
-
-% ITERATIVE ESTIMATION
-% Levenberg-Marquardt algorithm NLS estimation
+% Calculation of iterative parameter estimation
 fprintf('\n Iterative calculation: NLS solution \n');
 if GN==1,   relax = 0;                      % gradient relaxation
 else        relax = 0.01;
 end
-An = Awls; Bn = Bwls;                       % choice of starting values
+[Bn,An] = hm2ba(Hwls);                      % starting values choices
 iter0 = 0; iter = 0;                        % interation number
 relerror0 = Inf; relerror = Inf;            % relative error
 dE_dB = zeros(nrofh*nroff,nrofb);           % parameter error change
-y = ba2theta(Bn,An,n,M_mh,M_ml);             % initial parameters
+y = ba2theta(Bn,An,n,M_mh,M_ml);            % initial parameters
+EX = kron(ones(nroff,1),(n:-1:0));          % External matrix
+W = kron(ones(1,n+1),waxis);                % Weighting matrix
+P_fr = (W.^EX); Q_fr = (W.^EX);             % First P/Q-matrix
 cost0 = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs);
 
 while (iter<max_iter)&&(abs(relerror)>max_err)
@@ -101,5 +95,7 @@ while (iter<max_iter)&&(abs(relerror)>max_err)
   end
   fprintf('Iter %g: index = %g, cost = %g, rel.err = %g\n',...
            iter, iter0, cost0, relerror0)
- 
+end
+Hnls = ba2hm(Bn,An,nrofi,nrofo);
+
 end
