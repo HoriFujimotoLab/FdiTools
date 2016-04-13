@@ -1,6 +1,6 @@
-function [Bml,Aml,Bls,Als] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+function [Hml,Hls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
 % MLFDI - Maximum Likelihood Estimation (MIMO).
-%   [Bml,Aml,Bls,Als,cost0]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+%   [Hml,Hls]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
 % X,Y,freq  : Input & output frequency domain data
 % sX2,sY2   : variance of X & Y frequency domain data
 % cXY       : Covariance between X & Y frequency domain data
@@ -11,26 +11,25 @@ function [Bml,Aml,Bls,Als] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relva
 % Bm/l,Am/l : ML/LS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
-M_mh=M_mh'; M_ml=M_ml';                 % vectorize numerator sizes
-M_mh = M_mh(:); M_ml = M_ml(:);
-
 nrofi = size(X,2);                      % number of inputs
 nrofo = size(Y,2);                      % number of outputs
 nrofh = nrofi*nrofo;                    % number of transfer functions
 nroff = length(freq(:));                % number of frequency lines
 nrofb = sum(M_mh-M_ml)+nrofh;           % number of numerator coefficients
 nrofp = nrofb+n;                        % number of estimated parameters
+M_mh=M_mh'; M_ml=M_ml';                 % vectorize numerator sizes
+M_mh = M_mh(:); M_ml = M_ml(:);
 
 % Calculation of initial values for iterative process
 fprintf(' \n Initial calculation: LS solution \n')
-[Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs);
+[Hls,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs);
 
 % Calculation of iterative parameter estimation
 fprintf('\n Iterative calculation: ML solution \n');
 if GN==1,   relax = 0;                  % gradient relaxation
 else        relax = 1;
 end
-Aml = Als; Bml = Bls;                   % starting values choice
+[Bml,Aml] = hm2ba(Hls);                 % starting values choice
 iter0 = 0; iter = 0;                    % interation number
 relerror0 = Inf; relerror = Inf;        % relative error
 y = ba2theta(Bml,Aml,n,M_mh,M_ml);      % initial parameter vector
@@ -108,5 +107,6 @@ while (iter<iterno)&&(relerror>relvar)
   fprintf('Iter %g: index = %g, cost = %g, rel.err = %g\n',...
            iter,iter0,cost0,relerror0)   
 end
+Hml = ba2hm(Bml,Aml,nrofi,nrofo);
 
 end

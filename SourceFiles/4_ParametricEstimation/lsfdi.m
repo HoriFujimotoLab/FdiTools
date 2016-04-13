@@ -1,20 +1,19 @@
-function [Bls,Als,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs)
+function [Hls,waxis] = lsfdi(X,Y,freq,n,M_mh,M_ml,cORd,fs)
 %LLSFDI - Linear Least Squares FDI (MIMO).
-%   [Bls,Als]=lsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs)
+%   [Hls,waxis] = lsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,cORd,fs)
 % X,Y,freq  : Input & output frequency domain data
 % n,mh,ml   : Order of the denominator/nominator polynomials
 % cORd, fs  : Continuous 'c' or discrete 'd' model identification
 % Bm/l,Am/l : ML/LS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
-M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
-M_mh = M_mh(:); M_ml = M_ml(:);
-
 nrofi = size(X,2);                  % number of inputs
 nrofo = size(Y,2);                  % number of outputs
 nrofh = nrofi*nrofo;                % number of transfer functions
 nroff = length(freq(:));            % number of frequency lines
 nrofb = sum(M_mh-M_ml)+nrofh;       % number of numerator coefficients
+M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
+M_mh = M_mh(:); M_ml = M_ml(:);
 
 % Calculation of frequency axis
 if     (cORd == 'c'),   waxis = 1i*2*pi*freq;
@@ -53,5 +52,6 @@ J = [real(P(:,2:n+1)) -real(Q);imag(P(:,2:n+1)) -imag(Q)];
 b = -1*[real(P(:,1)) ; imag(P(:,1))];
 y = pinv(J)*b;
 [Bls,Als] = theta2ba(y,n,M_mh,M_ml);
+Hls = ba2hm(Bls,Als,nrofi,nrofo);
 
 end

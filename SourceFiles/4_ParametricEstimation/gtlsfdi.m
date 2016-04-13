@@ -1,6 +1,6 @@
-function [Bgtls,Agtls,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
+function [Hgtls,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
 % GTLS - Generalized Total Least Squares Estimation (MIMO).
-%   [Bgtls,Agtls,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
+%   [Hgtls,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
 % X,Y,freq  : Input & output frequency domain data
 % sX/Y2,cXY : Measurement frequency covariance matrix data
 % n,mh,ml   : Order of the denominator/nominator polynomials
@@ -8,15 +8,14 @@ function [Bgtls,Agtls,waxis] = gtlsfdi(X,Y,freq,n,M_mh,M_ml,sX2,sY2,cXY,cORd,fs)
 % Bm/l,Am/l : ML/LS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
-M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
-M_mh = M_mh(:); M_ml = M_ml(:);
-
 nrofi = size(X,2);                  % number of inputs
 nrofo = size(Y,2);                  % number of outputs
 nrofh = nrofi*nrofo;                % number of transfer functions
 nroff = length(freq(:));            % number of frequency lines
 nrofb = sum(M_mh-M_ml)+nrofh;       % number of numerator coefficients
 nrofp = nrofb+n;                    % number of estimated parameters
+M_mh=M_mh'; M_ml=M_ml';             % vectorize numerator sizes
+M_mh = M_mh(:); M_ml = M_ml(:);
 
 % Calculation of frequency axis
 if     (cORd == 'c'),   waxis = 1i*2*pi*freq;
@@ -90,5 +89,6 @@ Xg = qsvd(J,C);
 Xg = inv(Xg');
 Xg = Xg(:,nrofp+1)/Xg(1,nrofp+1);
 [Bgtls,Agtls] = theta2ba(Xg(2:end),n,M_mh,M_ml);
+Hgtls = ba2hm(Bgtls,Agtls,nrofi,nrofo);
 
 end
