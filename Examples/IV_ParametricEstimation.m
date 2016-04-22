@@ -32,41 +32,19 @@ FRF_W = ones(size(FRFs));   % least squares weighting function
 relax = 1;                  % relaxation factor for btls estimation
 
 % Deterministic methods: non-linear least squares
-[Bn_nls,An_nls,Bn_wls,An_wls] = ...
-nlsfdi(FRFs,freq,FRF_W,n,mh,ml,iter,relvar,GN,cORd,fs);
-    SYS.nls(:,1) = tf(Bn_nls(1,:),An_nls); 
-    FRF.nls(:,1) = squeeze(freqresp(SYS.nls(:,1),freq*2*pi));
-    SYS.wls(:,1) = tf(Bn_wls(1,:),An_wls); 
-    FRF.wls(:,1) = squeeze(freqresp(SYS.wls(:,1),freq*2*pi));
-    SYS.nls(:,2) = tf(Bn_nls(2,:),An_nls); 
-    FRF.nls(:,2) = squeeze(freqresp(SYS.nls(:,2),freq*2*pi));
-    SYS.wls(:,2) = tf(Bn_wls(2,:),An_wls); 
-    FRF.wls(:,2) = squeeze(freqresp(SYS.wls(:,2),freq*2*pi));
-    
+[SYS.nls,SYS.wls] = nlsfdi(FRFs,freq,FRF_W,n,mh,ml,iter,relvar,GN,cORd,fs);
+    FRF.nls = hfrf(SYS.nls,freq);
+    FRF.wls = hfrf(SYS.wls,freq);
 % Stochastic methods: maximum likelihood estimation
-[Bn_ml,An_ml,Bn_ls,An_ls] = ...
-mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iter,relvar,GN,cORd,fs);
-    SYS.ml(:,1) = tf(Bn_ml(1,:),An_ml);
-    FRF.ml(:,1) = squeeze(freqresp(SYS.ml(:,1),freq*2*pi));
-    SYS.ls(:,1) = tf(Bn_ls(1,:),An_ls);
-    FRF.ls(:,1) = squeeze(freqresp(SYS.ls(:,1),freq*2*pi));
-    SYS.ml(:,2) = tf(Bn_ml(2,:),An_ml);
-    FRF.ml(:,2) = squeeze(freqresp(SYS.ml(:,2),freq*2*pi));
-    SYS.ls(:,2) = tf(Bn_ls(2,:),An_ls);
-    FRF.ls(:,2) = squeeze(freqresp(SYS.ls(:,2),freq*2*pi));
+[SYS.ml,SYS.ls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iter,relvar,GN,cORd,fs);
+    FRF.ml = hfrf(SYS.ml,freq);
+    FRF.ls = hfrf(SYS.ls,freq);
 
 % Stochastic methods: bootstrapped total least squares
-[Bn_btls,An_btls,Bn_gtls,An_gtls] = ...
-btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,relax,iter,relvar,cORd,fs);
-    SYS.btls(:,1) = tf(Bn_btls(1,:),An_btls); 
-    FRF.btls(:,1) = squeeze(freqresp(SYS.btls(:,1),freq*2*pi));
-    SYS.gtls(:,1) = tf(Bn_gtls(1,:),An_gtls); 
-    FRF.gtls(:,1) = squeeze(freqresp(SYS.gtls(:,1),freq*2*pi));
-    SYS.btls(:,2) = tf(Bn_btls(2,:),An_btls); 
-    FRF.btls(:,2) = squeeze(freqresp(SYS.btls(:,2),freq*2*pi));
-    SYS.gtls(:,2) = tf(Bn_gtls(2,:),An_gtls); 
-    FRF.gtls(:,2) = squeeze(freqresp(SYS.gtls(:,2),freq*2*pi));
-    
+[SYS.btls,SYS.gtls] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,relax,iter,relvar,cORd,fs);
+    FRF.btls = hfrf(SYS.btls,freq);
+    FRF.gtls = hfrf(SYS.gtls,freq);
+
 figure('Name','Deterministic Estimators')
 subplot(221), semilogx(freq,[dbm(FRFs(:,1)),dbm(FRF.wls(:,1)),dbm(FRF.nls(:,1))])
 hold on, semilogx(freq,dbm(FRF.ls(:,1)),'k--')    % starting values
