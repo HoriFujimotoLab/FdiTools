@@ -22,7 +22,7 @@ output = [theta_mx,-theta_my];  % output data of motor bench
 
 % deterministric/stochastic estimation with non-parametric noise model
 n=4;                        % model order of denominator polynomial
-mh=[2,0]; ml=[0,0];         % model orders of numerator polynomial
+mh=[2;0]; ml=[0;0];         % model orders of numerator polynomial
 relvar=1e-10;               % relative variation of costfunction (stop)
 iter=5e2;                   % maximum number of iterations (stop)
 GN = 0;                     % Levenberg-Marquardt optimization
@@ -31,28 +31,13 @@ FRF_W = ones(size(FRFs));   % least squares weighting function
 relax = 1;                  % relaxation factor for btls estimation
 
 % Deterministic method: non-linear least squares
-[Bn_nls,An_nls,Bn_wls,An_wls] = ...
-nlsfdi(FRFs,freq,FRF_W,n,mh,ml,iter,relvar,GN,cORd,fs);
-    SYS.nls(:,1) = tf(Bn_nls(1,:),An_nls); 
-    SYS.wls(:,1) = tf(Bn_wls(1,:),An_wls); 
-    SYS.nls(:,2) = tf(Bn_nls(2,:),An_nls);
-    SYS.wls(:,2) = tf(Bn_wls(2,:),An_wls); 
+[SYS.nls,SYS.wls] = nlsfdi(FRFs,freq,FRF_W,n,mh,ml,iter,relvar,GN,cORd,fs);
     
 % Stochastic method: maximum likelihood estimation
-[Bn_ml,An_ml,Bn_ls,An_ls] = ...
-mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iter,relvar,GN,cORd,fs);
-    SYS.ml(:,1) = tf(Bn_ml(1,:),An_ml);
-    SYS.ls(:,1) = tf(Bn_ls(1,:),An_ls);
-    SYS.ml(:,2) = tf(Bn_ml(2,:),An_ml);
-    SYS.ls(:,2) = tf(Bn_ls(2,:),An_ls);
+[SYS.ml,SYS.ls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iter,relvar,GN,cORd,fs);
 
 % Stochastic method: bootstrapped total least squares
-[Bn_btls,An_btls,Bn_gtls,An_gtls] = ...
-btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,relax,iter,relvar,cORd,fs);
-    SYS.btls(:,1) = tf(Bn_btls(1,:),An_btls); 
-    SYS.gtls(:,1) = tf(Bn_gtls(1,:),An_gtls);
-    SYS.btls(:,2) = tf(Bn_btls(2,:),An_btls); 
-    SYS.gtls(:,2) = tf(Bn_gtls(2,:),An_gtls);
+[SYS.btls,SYS.gtls] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,relax,iter,relvar,cORd,fs);
 
 % PART 5: SELECTION & VALIDATION
 % Selection & validation of estimator type and model set

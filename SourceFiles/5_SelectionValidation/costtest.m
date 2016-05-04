@@ -25,7 +25,7 @@ cost = zeros(nrofm,nrofh);
 for h=1:nrofh
     i = ceil(h/nrofo); o = h-(i-1)*nrofo;
     for m=1:nrofm
-        [Bn,An] = tfdata(model_c{m}(:,h),'v');
+        [Bn,An] = tfdata(model_c{m}(o,i),'v');
         cost(m,h) = fdicost(Bn,An,freq,X(:,i),Y(:,o),...
                             sX2(:,i),sY2(:,o),cXY(:,h),relax);
     end

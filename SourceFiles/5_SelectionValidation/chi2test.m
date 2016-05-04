@@ -29,8 +29,9 @@ err = zeros(nroff,nrofm,nrofh);
 srt = zeros(nroff,nrofm,nrofh);
 cnt = zeros(nrofm,nrofh);
 for h=1:nrofh
+    i = ceil(h/nrofo); o = h-(i-1)*nrofo;
     for m=1:nrofm
-        [Bn,An] = tfdata(model_c{m}(:,h),'v');
+        [Bn,An] = tfdata(model_c{m}(o,i),'v');
         FRFsys = squeeze(freqresp(tf(Bn,An),freq*2*pi));
         err(:,m,h) = abs(FRF(:,h)-FRFsys).^2;
         for f=1:nroff

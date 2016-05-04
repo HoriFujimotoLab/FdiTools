@@ -42,8 +42,9 @@ frac50 = zeros(nrofm,nrofh);
 frac95 = zeros(nrofm,nrofh);
 corr = zeros(length(lags),nrofm,nrofh);
 for h=1:nrofh
+    i = ceil(h/nrofo); o = h-(i-1)*nrofo;
     for m = 1:nrofm
-        FRFsys = squeeze(freqresp(SYS_c{m}(:,h),freq*2*pi));
+        FRFsys = squeeze(freqresp(SYS_c{m}(o,i),freq*2*pi));
         res = (FRF(:,h)-FRFsys)./sCR(:,h).^0.5;
         auto_corr = xcorr(res','unbiased').*ac_scale;
         frac50(m,h) = length(find(abs(auto_corr(select)) - ...
