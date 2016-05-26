@@ -10,6 +10,8 @@ function [Hml,Hls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cOR
 % cORd, fs  : Continuous 'c' or discrete 'd' model identification
 % Bm/l,Am/l : ML/LS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
+%
+% See also WLSFDI, NLSFDI, GTLSFDI, BTLSFDI
 %%%%%
 nrofi = size(X,2);                      % number of inputs
 nrofo = size(Y,2);                      % number of outputs
