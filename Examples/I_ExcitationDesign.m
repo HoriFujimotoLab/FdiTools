@@ -6,38 +6,45 @@
 % Author:   Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
-% Experiment Parameters:
-fs = 1000;              % sampling frequency   [Hz]
-df = 1;                 % frequency resolution [Hz]
-fl = 10;                % min excitation freq. [Hz]
-fh = 100;               % max excitation freq. [Hz]
-nrofs = fs/df; time = (0:1/fs:1/df-1/fs);
 
-%% EXAMPLE 1: MULTISINE
-% Type A: full compressed schroeder-phase multisine:
-itp = 's';              % init phase type:  s=schroeder/r=random
-ctp = 'c';              % compression type: c=comp/n=no_comp
-stp = 'f';              % signal type:      f=full/ O=odd-odd
+%% EXAMPLE 1: SISO MULTISINE
+% Harmonics Parameters:
+harm.fs = 1000;         % sampling frequency
+harm.df = 2;            % frequency resolution
+harm.fl = 10;           % lowest frequency
+harm.fh = 300;          % highest frequency
+harm.fr = 1.02;         % frequency log ratio
+% Design Options:
+options.itp = 's';      % init phase type:  s=schroeder/r=random
+options.ctp = 'c';      % compression type: c=comp/n=no_comp
+options.dtp = 'f';      % signal type:      f=full/ O=odd-odd
                         %                   o=odd / O2=special odd-odd
-Bn=1; An=1;             % amplitude spectrum    [-]
-[x1,Xs1,freqs1,Xt1,freqt1] = msin(fs,df,fl,fh,itp,ctp,stp,Bn,An);
+options.gtp = 'l';      % grid type: l=linear/q=quasi-logarithmic
+% Ampliude spectrum:
+nrofi = 2;              % Define number of inputs
+Hampl = repmat(tf(1),[1,nrofi]); % flat spectrum
+[x,X,freq,ex,cf] = multisine(harm, Hampl, options);
 
-% Type B: odd-odd uncompressed random-phase multisine:
-itp = 'r';              % init phase type:  s=schroeder/r=random
-ctp = 'n';              % compression type: c=comp/n=no_comp
-stp = 'O';              % signal type:      f=full/ O=odd-odd
-                        %                   o=odd / O2=special odd-odd
-Bn=1; An=1;             % amplitude spectrum (opt) [-]
-[x2,Xs2,freqs2,Xt2,freqt2] = msin(fs,df,fl,fh,itp,ctp,stp,Bn,An);
-
-figure
-subplot(211); plot(time,[x1(1:nrofs),x2(1:nrofs)]);
-    title('multisine: time domain'); 
-    xlabel('time [s]'); ylabel('amplitude [-]');
-legend('Type A','Type B')
-subplot(212); semilogx(freqt1,[dbm(Xt1),dbm(Xt2)]);
-    title('multisine: freq domain'); 
-    xlabel('freq [Hz]'); ylabel('amplitude [dB]');
+nrofs=length(x); time=(0:1/harm.fs:1/harm.df-1/harm.fs);
+hfig=figure; sub = 0;
+for ii = 1:nrofi
+    for jj = 1:nrofi
+        sub = sub+1;
+        subplot(nrofi, nrofi, sub);
+        plot(time,squeeze(x(ii,jj,:)))
+        title(strcat('CF =',num2str(cf(ii,jj))))
+        old = axis; axis([0, time(end), old(3:4)])
+    end
+end
+hfig=figure; sub=0;
+for ii = 1:nrofi
+    for jj = 1:nrofi
+        sub = sub+1;
+        subplot(nrofi, nrofi, sub);
+        semilogx(freq,dbm(squeeze(X(ii,jj,:))),'+')
+        old = axis; axis([0, nrofs, old(3:4)])
+    end
+end
 pause
 
 % NOTES:
@@ -45,9 +52,17 @@ pause
 %      to improve S/N of measurement.
 % ITP: Random initial phase creates different signals in time domain
 %      with identical frequency domain.
-% STP: Odd signal type used for non-linear distortion analysis.
-%
-%% EXAMPLE 2: PRBS 
+% DTP: Odd signal type used for non-linear distortion analysis.
+% GTP: Quasi-logarithmic freq grid used for overview measurements
+
+%% EXAMPLE 2: PRBS
+% Experiment Parameters:
+fs = 1000;              % sampling frequency   [Hz]
+df = 1;                 % frequency resolution [Hz]
+fl = 10;                % min excitation freq. [Hz]
+fh = 100;               % max excitation freq. [Hz]
+nrofs = fs/df; time = (0:1/fs:1/df-1/fs);
+
 % Pseudo-Random-Binary-Sequency excitation signal
 log2N = 21;             % shift reg length     [-]
 bitno = fs/df;          % number of bits       [-]
