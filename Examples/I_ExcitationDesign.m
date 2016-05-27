@@ -15,13 +15,13 @@ harm.fl = 10;           % lowest frequency
 harm.fh = 300;          % highest frequency
 harm.fr = 1.02;         % frequency log ratio
 % Design Options:
-options.itp = 's';      % init phase type:  s=schroeder/r=random
+options.itp = 'r';      % init phase type:  s=schroeder/r=random
 options.ctp = 'c';      % compression type: c=comp/n=no_comp
 options.dtp = 'f';      % signal type:      f=full/ O=odd-odd
                         %                   o=odd / O2=special odd-odd
 options.gtp = 'l';      % grid type: l=linear/q=quasi-logarithmic
 % Ampliude spectrum:
-nrofi = 2;              % Define number of inputs
+nrofi = 4;              % Define number of inputs
 Hampl = repmat(tf(1),[1,nrofi]); % flat spectrum
 [x,X,freq,ex,cf] = multisine(harm, Hampl, options);
 
