@@ -21,7 +21,7 @@ options.dtp = 'f';      % signal type:      f=full/ O=odd-odd
                         %                   o=odd / O2=special odd-odd
 options.gtp = 'l';      % grid type: l=linear/q=quasi-logarithmic
 % Ampliude spectrum:
-nrofi = 4;              % Define number of inputs
+nrofi = 3;              % Define number of inputs
 Hampl = repmat(tf(1),[1,nrofi]); % flat spectrum
 [x,X,freq,ex,cf] = multisine(harm, Hampl, options);
 

@@ -11,6 +11,6 @@ for p=1:nrofi
         T(p,q)=nrofi^(-1/2)*exp(1i*2*pi*(p-1)*(q-1)/nrofi);
     end
 end
-T = T./T(1,1);
+%T = T./T(1,1);
 
 end

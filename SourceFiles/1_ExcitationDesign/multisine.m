@@ -20,13 +20,14 @@ function [x,X,freq,ex,cf] = multisine(harm, Hampl, options)
 %   <>.cf     : Crest factor of the different signals
 % Author      : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
-nrofi = size(Hampl,2);              % Number of inputs
-nl = ceil(harm.fl/harm.df)+1;       % Lowest frequency number
-nh = round(harm.fh/harm.df)+1;      % Highest frequency number
-nrofs = ceil(harm.fs/harm.df);      % Number of time domain samples
-df = harm.fs/nrofs;                 % Spectral density of signal
-if mod(nrofi,2)~=0, options.otp = 'o'; itp = 'r';
-else                options.otp = 'e'; itp = options.itp;
+nrofi = size(Hampl,2);                  % Number of inputs
+nl = ceil(harm.fl/harm.df)+1;           % Lowest frequency number
+nh = round(harm.fh/harm.df)+1;          % Highest frequency number
+nrofs = ceil(harm.fs/harm.df);          % Number of time domain samples
+df = harm.fs/nrofs;                     % Spectral density of signal
+if nrofi > 1, options.itp = 'r'; end    % MIMO experiments need r-phase
+if mod(nrofi,2)~=0, options.otp = 'o';  % Orthogonal multsines (general)
+else                options.otp = 'e';  % Hadamard multisines (better cf)
 end
 
 % Calculation of Excited Harmonics
@@ -51,10 +52,14 @@ for i=1:nrofi
     Mag = abs(polyval(Bn,w)./polyval(An,w));
     X(ex) = Mag(ex);
     for j=1:nrofi
-        if i == 1
-            E(j,:) = msinl2p(X,nrofs,itp);
+        switch options.itp
+            case {'r','random'},  X = randph(X);
+            case {'s','schroed'}, X = schroed(X);
         end
-        R(i,j,:) = abs(X).*exp(1i*angle(E(j,:)'));
+        switch options.ctp
+            case {'n','non-comp'},   R(i,j,:) = X;
+            case {'c','compressed'}, R(i,j,:) = msinl2p(X,nrofs,options.itp);
+        end
     end
 end
 

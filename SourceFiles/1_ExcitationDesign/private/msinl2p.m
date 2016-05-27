@@ -16,8 +16,6 @@ if nargin<6, H=[]; end              % in-only minimization
 if nargin<5, W=0; end               % in-out opti weighting
 if nargin<4, Fa=[]; end             % Additional snowing freq
 W=W(:)'; Fa=Fa(:);                  % vectorization
-relvar = 1e-10;                     % max relative deviation
-iterno = 20;                        % max number of iterations
 p = 2;                              % initial l2p-norm value
 
 Fe = find(X~=0);                    % effective spectral lines
@@ -28,9 +26,15 @@ nroft = length(Ft);                 % number of considered harm
 kmax = max(Ft)-1;                   % Largest harmonic number
 if length(X(:,1)) <= kmax, X(kmax+1,1) = 0; end
 
-% Phase initialization 
-if (itp=='r'), X = randph(X);  tex = 'Random';
-else           X = schroed(X); tex = 'Schroeder';
+% Parameter Initialization
+if strcmp(itp,'r'), 
+    tex = 'Random';                 % limit opti to keep random 
+    relvar = 1e-6;                  % max relative deviation
+    iterno = 10;                    % max number of iterations
+else
+    tex = 'Schroed';                % maximize opti for good cf
+    relvar = 1e-10;                 % max relative deviation
+    iterno = 20;                    % max number of iterations
 end
 
 % Gradually increase the p-norm
@@ -183,7 +187,6 @@ X = X0/W(1);            % Unscaling the result
 p = ceil(p*2);          % Increasing the p-norm
 
 end
-fprintf('\n INIT PHASE: %s',tex)
 fprintf('\n CREST FACTOR = %g \n\n',CF)
 
 end
