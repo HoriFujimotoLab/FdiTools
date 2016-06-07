@@ -1,5 +1,5 @@
 function [A,B,C,D,fs]=ssfdi(FRF,FRF_W,freq,n_in,n_out,n_row,n_col,order)
-%
+% (NOTE: WORK IN PROGRESS)
 % Frequency domain identification of a discrete time MIMO state space model
 % method of T. McKelvey (subspace approach)
 %

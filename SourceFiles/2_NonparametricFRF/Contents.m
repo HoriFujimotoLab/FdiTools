@@ -5,6 +5,7 @@
 % Data Treatment
 % pretreat      - transients, offsets and trends removal
 %                 adviced for time-domain pretreatment of data
+% splinefit     - intricate drift/trend removal by b-spline fit
 %
 % Data Estimators
 % time2frf_h1   - Classic least-squares estimation of frf (H1)

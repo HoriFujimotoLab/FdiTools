@@ -1,5 +1,5 @@
 function T = orthogonal(nrofi)
-%ORTHOGONAL - transformation matrix for orthogonal multisines.
+%ORTHOGONAL - Transformation matrix for orthogonal multisines.
 %   T = orthogonal(nrofi)
 % nrofi : Number of inputs (odd inputs only).
 % T     : Create nrofi orthogonal phase multisines

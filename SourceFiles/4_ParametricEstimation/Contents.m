@@ -5,6 +5,8 @@
 % Deterministic Estimators
 %   lsfdi       - Linear Least Squares analytical estimator
 %                 adviced for starting values calculations.
+%   wlsfdi      - Weighted Least Squares analytical estimator
+%                 adviced for improved starting values calc.
 %   nlsfdi      - Non-linear Least Squares numerical estimator
 %                 requires only measured input-output freq. data.
 %

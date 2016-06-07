@@ -10,7 +10,7 @@
 %   residtest   - Identification Residuals for validation.
 %
 % Auxiliary Functions
-%   btlsfdi_res - Bootstrapped Total Least Squares Residuals.
+%   fdicost     - Frequency Domain Identification Residual cost
 %
 % Author: Thomas Beauduin
 % Copyright (c) PMA, KULeuven, Belgium

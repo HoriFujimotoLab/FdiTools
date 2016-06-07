@@ -3,24 +3,20 @@
 % Version 2.0 (R2013a) Feb-2014
 %  
 % Multi-Sine
-%     msin          - Multisine excitation generation
-%     msinl2pi      - Lp-norm optimization of multisine phase
-%     msinclip      - Clipping optimization of multisine phase
-%     msinprep      - Preparation of multisine clipping
+%     multisine     - Multisine excitation generation
+%     msinl2p       - Lp-norm optimization of multisine phase
 %     schroed       - Schoeder multisine phase design
 %     randph        - Random multisine phase design
 %     lpnorm        - Lp-norm vector calculation
+%     lin2qlog      - Linear to quasi-logarithmic frequency grid
+%     orthogonal    - Transformation matrix for orthogonal multisines
+%     effval        - calculate the effective signal value
 %
 % Swept-Sine
 %     swept         - Swept-Sine excitation signal generation
 %
 % Pseudo-Random-Binary-Sequence
 %     prbs          - PRBS excitation signal generation
-%
-% Auxiliary Functions
-%     effval        - calculate the effective signal value
-%     crestfactor   - calculate signal crest factor
-%     timefactor    - calculate signal time factor
-%       
+%     
 % Author: Ir. Thomas Beauduin
 % Copyright (c) PMA, KULeuven, Belgium

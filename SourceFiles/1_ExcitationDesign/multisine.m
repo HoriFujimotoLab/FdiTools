@@ -1,12 +1,12 @@
 function [x,X,freq,ex,cf] = multisine(harm, Hampl, options)
-%MULTISINE - Multisine Excitation Signal generation.
+%MULTISINE - Multisine Excitation Signal generation (MIMO).
 %   [x,Xs,freqs,Xt,freqt] = multisine(harmonics, Hamp, options)
 %
 % HARMONICS = parameter set concerning the excited harmonics
 %   <>.fs     : Sampling frequency in Hz
 %   <>.fl/.fh : Lowest/Highest frequency lines
 %   <>.df     : Spectral lines density
-%   <>.fr     : Quasi-logarithmic freq ration
+%   <>.fr     : Quasi-logarithmic freq ratio
 % AMPLITUDE = vectors of transfer functions with input ampl spectrum
 % OPTIONS = parameter set containing multisine design options
 %   <>.itp    : Initial phase type - 's' schroeder / 'r' random
@@ -78,7 +78,7 @@ s = 2*real(ifft(S,[],3));
 rms = mean(abs(s.^2),3).^0.5;
 x = s ./ repmat(rms, [1,1,nrofs]);
 X = fft(x,[],3)/sqrt(nrofs);
-X = X(:,:,1:nrofs/2);
+X = X(:,:,1:floor(nrofs/2));
 freq = harm.fs*(0:1:nrofs/2-1)'/nrofs;
 
 % Calculation of Crest Factors
