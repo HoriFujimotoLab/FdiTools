@@ -31,6 +31,9 @@ for i=1:nrofi
     for p=1:nrofp
         Ip = fft(x(1+(p-1)*nrofs:p*nrofs,i));       % fft of 1x period
         INP(:,p,i) = Ip(nl+1:nh+1);                 % fft dc-term removal
+ %       for f=1:nroff
+ %           INP(f,p,i)=INP(f,p,i)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
+ %       end
     end
     Xs(:,i) = mean(INP(:,:,i),2);
     sX2(:,i)=((std(INP(:,:,i),0,2)).^2)/2/nrofp;    % measurement variances
@@ -39,6 +42,9 @@ for o=1:nrofo
     for p=1:nrofp
         Op = fft(y(1+(p-1)*nrofs:p*nrofs,o));
         OUT(:,p,o) = Op(nl+1:nh+1);
+  %      for f=1:nroff
+  %          INP(f,p,o)=INP(f,p,o)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
+  %      end
     end
     Ys(:,o) = mean(OUT(:,:,o),2);
     sY2(:,o)=((std(OUT(:,:,o),0,2)).^2)/2/nrofp;
