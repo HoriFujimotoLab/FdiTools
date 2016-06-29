@@ -8,10 +8,10 @@ function X=t2f(x,N)
 
 if nargin==1
    [rowno,colno]=size(x);
-   Ndummy=rowno;
+   Ndummy=max(rowno,colno);
    N=2;
    while Ndummy>N, N=N*2; end
 end
-X=fft(x,N);
-X=[X(1,:);2*X(2:floor(N/2),:)]/N;
+X = fft(x,N);
+X = [X(1,:);2*X(2:floor(N/2),:)]/N;
 

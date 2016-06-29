@@ -1,4 +1,4 @@
-function [x,X,freq,ex,cf] = multisine(harm, Hampl, options)
+function output = multisine(harm, Hampl, options)
 %MULTISINE - Multisine Excitation Signal generation (MIMO).
 %   [x,Xs,freqs,Xt,freqt] = multisine(harmonics, Hamp, options)
 %
@@ -89,5 +89,9 @@ for i=1:nrofi
         cf(i,j) = lpnorm(c,inf)./effval(C,ex);
     end
 end
+
+% Ouput structure creation
+output.x = x; output.X = X; output.freq = freq; 
+output.ex = ex; output.cf = cf;
 
 end
