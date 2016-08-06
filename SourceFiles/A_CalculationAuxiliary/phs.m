@@ -37,17 +37,18 @@ for i=2:length(Y)
         end
         
         if bgn_j == 1 && first == 0
-            if Y(i)<Y(i-1), Y(1:i-1)=Y(1:i-1)-abs(Y(i)-Y(i-1));
+            if Y(i)<Y(i-1), Y(1:i-1)=Y(1:i-1)-360;%abs(Y(i)-Y(i-1));
             else            jump_i=+1;
             end
             first = 1;
         end
         if jump_i == -jump_j
             Yij = mean(Y(i:j));
-            Y(i:j)=Y(i:j)-abs(Yij-Y(i-1));%mean([abs(Yij-Y(i-1)),abs(Yij-Y(j+1))]);
+            Y(i:j)=Y(i:j)-360;%abs(Yij-Y(i-1));%mean([abs(Yij-Y(i-1)),abs(Yij-Y(j+1))]);
         end
         if end_j == 1 && last == 0
-           if nargin > 1, Y(i:j+1)=Y(i:j+1)-abs(Y(i)-Y(i-1)); end
+           if nargin > 1, Y(i:j+1)=Y(i:j+1)-360;%abs(Y(i)-Y(i-1)); 
+           end
            last = 1;
         end
     end
