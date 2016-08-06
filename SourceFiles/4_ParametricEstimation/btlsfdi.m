@@ -1,5 +1,5 @@
 function [Hbtls,Hgtls] = btlsfdi(X,Y,freq,n,M_mh,M_ml,sY2,sX2,cXY,relax,max_iter,max_err,cORd,fs)
-%BTLSFDI Bootstrapped Total Least Squares Estimation (MIMO).
+%BTLSFDI - Bootstrapped Total Least Squares Estimation (MIMO).
 %   [Bb,Ab,Bg,Ag] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,iter,relax,max_err)
 % X,Y,freq  : Input & output frequency domain data
 % sX2,sY2   : variance of X & Y frequency domain data

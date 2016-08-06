@@ -10,7 +10,8 @@ nrofh = nrofi*nrofo;             % number of transfer functions
 
 for h=1:nrofh
     i = ceil(h/nrofo); o = h-(i-1)*nrofo;
-    Hm(o,i) = tf(Bn(h,:),An);
+    [z,p,k] = tf2zpk(Bn(h,:),An);
+    Hm(o,i) = zpk(z,p,k);
 end
 
 end
