@@ -7,33 +7,32 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 
-%% EXAMPLE 1: SISO MULTISINE
+%% EXAMPLE 1: MULTISINE
 % Harmonics Parameters:
 harm.fs = 1000;         % sampling frequency
-harm.df = 2;            % frequency resolution
-harm.fl = 10;           % lowest frequency
-harm.fh = 300;          % highest frequency
+harm.df = 1;            % frequency resolution
+harm.fl = 1;            % lowest frequency
+harm.fh = 100;          % highest frequency
 harm.fr = 1.02;         % frequency log ratio
 % Design Options:
 options.itp = 'r';      % init phase type:  s=schroeder/r=random
 options.ctp = 'c';      % compression type: c=comp/n=no_comp
-options.dtp = 'f';      % signal type:      f=full/ O=odd-odd
+options.dtp = 'o';      % signal type:      f=full/ O=odd-odd
                         %                   o=odd / O2=special odd-odd
 options.gtp = 'l';      % grid type: l=linear/q=quasi-logarithmic
 % Ampliude spectrum:
 nrofi = 1;              % Define number of inputs
 Hampl = repmat(tf(1),[1,nrofi]); % flat spectrum
-[x,X,freq,ex,cf] = multisine(harm, Hampl, options);
+ms = multisine(harm, Hampl, options);
 
-nrofs=length(x); time=(0:1/harm.fs:1/harm.df-1/harm.fs);
 hfig=figure; sub = 0;
 for ii = 1:nrofi
     for jj = 1:nrofi
         sub = sub+1;
         subplot(nrofi, nrofi, sub);
-        plot(time,squeeze(x(ii,jj,:)))
-        title(strcat('CF =',num2str(cf(ii,jj))))
-        old = axis; axis([0, time(end), old(3:4)])
+        plot(ms.time,squeeze(ms.x(ii,jj,:)))
+        title(strcat('CF =',num2str(ms.cf(ii,jj))))
+        old = axis; axis([0, ms.time(end), old(3:4)])
     end
 end
 hfig=figure; sub=0;
@@ -41,8 +40,8 @@ for ii = 1:nrofi
     for jj = 1:nrofi
         sub = sub+1;
         subplot(nrofi, nrofi, sub);
-        semilogx(freq,dbm(squeeze(X(ii,jj,:))),'+')
-        old = axis; axis([0, nrofs, old(3:4)])
+        semilogx(ms.freq,dbm(squeeze(ms.X(ii,jj,:))),'+')
+        old = axis; axis([0, length(ms.x), old(3:4)])
     end
 end
 pause
