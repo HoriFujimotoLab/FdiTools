@@ -45,7 +45,6 @@ end
 
 % Calculation of Optimized Spectrum
 R = zeros(nrofi,nrofi,nh);
-E = zeros(nrofi,nh);
 for i=1:nrofi
     w = 1i*2*pi*harm.df*(0:1:nrofs/2-1)';
     X = zeros(nh,1); w = w(1:nh);

@@ -9,7 +9,7 @@ function [output] = sweptsine(h, options)
 %   <>.type   : sweep - 'lin' linear/'qdr' quadratic/'log' logarithmic
 % OUTPUT = time/frequency information of designed signal
 %   <>.x/time : time domain data of multisine
-%   <>X/freq  : frequency domain data of multisine
+%   <>.X/freq : frequency domain data of multisine
 % Author      : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
 
@@ -37,3 +37,6 @@ output.x = x; output.time = time;
 output.X = X; output.freq = freq; 
 
 end
+
+
+% Consider adding crest-factor and time-factor calculation
