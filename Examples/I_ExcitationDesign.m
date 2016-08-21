@@ -77,13 +77,21 @@ subplot(212); semilogx(freq,dbm(X));
 pause
 
 %% EXAMPLE 3: SWEPT-SINE
-% Swept-Sine excitation signal generation
-[x,time,X,freq] = swept(fs,fl,fh,df);
+% Harmonic Parameters
+harm.fs = 2000;             % sampling frequency   [Hz]
+harm.df = 0.05;             % frequency resolution [Hz]
+harm.fl = 0.1;              % lowest frequency     [Hz]
+harm.fh = 100;              % highest frequency    [Hz]
+
+% Design Options:
+options.type = 'lin';       % Sweep type: lin=linear/qdr=quadratic
+                            %             log=logarithmic
+ss = sweptsine(harm,options);
 
 figure
-subplot(211); plot(time,x(1:nrofs));
+subplot(211); plot(ss.time,ss.x);
     title('swept-sine: time domain'); 
     xlabel('time [s]'); ylabel('amplitude [-]');
-subplot(212); semilogx(freq,dbm(X));
+subplot(212); semilogx(ss.freq,dbm(ss.X));
     title('Swept-sine: freq domain'); 
     xlabel('freq [Hz]'); ylabel('amplitude [dB]');

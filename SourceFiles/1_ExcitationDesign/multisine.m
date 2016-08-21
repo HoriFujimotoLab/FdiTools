@@ -20,6 +20,8 @@ function output = multisine(harm, Hampl, options)
 %   <>.cf     : Crest factor of the different signals
 % Author      : Thomas Beauduin, KULeuven, PMA division, 2014
 %%%%%
+
+% Calculation of signal parameters
 nrofi = size(Hampl,2);                  % Number of inputs
 nl = ceil(harm.fl/harm.df)+1;           % Lowest frequency number
 nh = round(harm.fh/harm.df)+1;          % Highest frequency number
