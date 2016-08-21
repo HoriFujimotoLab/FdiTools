@@ -91,7 +91,8 @@ for i=1:nrofi
 end
 
 % Ouput structure creation
-output.x = x; output.X = X; output.freq = freq; 
+output.x = x; output.time = time;
+output.X = X; output.freq = freq; 
 output.ex = ex; output.cf = cf;
 
 end
