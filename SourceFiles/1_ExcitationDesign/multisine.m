@@ -80,6 +80,7 @@ x = s ./ repmat(rms, [1,1,nrofs]);
 X = fft(x,[],3)/sqrt(nrofs);
 X = X(:,:,1:floor(nrofs/2));
 freq = harm.fs*(0:1:nrofs/2-1)'/nrofs;
+time = (0:1/harm.fs:1/harm.df-1/harm.fs)';
 
 % Calculation of Crest Factors
 cf = zeros(nrofi,nrofi);
