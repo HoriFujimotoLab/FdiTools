@@ -81,12 +81,8 @@ while (iter<iterno)&&(relerror>relvar)
   J = [real(dA) real(dB) ; imag(dA) imag(dB)];
   e = [real(E)./SE ; imag(E)./SE];
   JtJ = J'*J;
-  Jte = J'*e;
-  diagJtJ = diag(JtJ);
 
-  A1 = J;
-  A2 = sqrt(relax*diag(diagJtJ+max(diagJtJ)*eps));
-  A = [A1 ; A2];
+  A = [J ; sqrt(relax*diag(diag(JtJ) + max(diag(JtJ))*eps))];
   b = [e; zeros(nrofp,1)];
   dy = -pinv(A)*b;   
   y0 = y;

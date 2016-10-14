@@ -1,6 +1,6 @@
 function [FRF] = hfrf(Hm,freq)
 %HFRF - get frequency response matrix of model.
-%   
+%   [FRF] = hfrf(Hm,freq)
 % Hm    : structure with models to evaluate.
 % FRF   : structure containing calculated frf.
 % author: Thomas Beauduin, KULeuven, PMA, 2014
