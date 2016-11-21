@@ -10,6 +10,35 @@ function [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df)
 % sCR       : cramer-rao variance on measurement FRF
 % Author    : Thomas Beauduin, KULeuven, PMA, Feb-2014
 %%%%%
+% future release will include full MIMO FRF processing
+% future release will include structured input/output:
+% EXC (data)
+% <>.fs         :
+% <>.fl         :
+% <>.fh         :
+% <>.df         :
+% <>.ex         :
+% TIME DATA
+% <>.x          :
+% <>.y          :
+% <>.fl         :
+% <>.fh         :
+% FREQ DATA
+% <>.freq       :
+% <>.FRFs       :
+% <>.X          :
+% <>.Y          :
+% <>.fs         : [Hz]
+% COV
+% <>.sX2        :
+% <>.sY2        :
+% <>.cXY        :
+% <>.FRFn       :
+% <>.sCR        :
+% OPTIONS
+% <>.frf_type   : ml/lpm/lrm/log/h2/h1
+%%%%
+
 [~,nrofi] = size(x);                                % number of inputs
 [~,nrofo] = size(y);                                % number of outputs
 nrofh = nrofi*nrofo;                                % number of tf's (Hxy)

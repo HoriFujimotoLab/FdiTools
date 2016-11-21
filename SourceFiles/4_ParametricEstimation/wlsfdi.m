@@ -55,6 +55,7 @@ for i=1:2
     [Bwls,Awls] = theta2ba(y,n,M_mh,M_ml);
 
     % Calculation of improved weighting functions FRF_W
+    % Sanathan & Koerner (1963)
     EX = kron(ones(nroff,1),(n:-1:0));
     W = kron(ones(1,n+1),waxis);
     P_fr = (W.^EX);

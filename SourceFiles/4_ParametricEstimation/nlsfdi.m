@@ -27,13 +27,14 @@ M_mh = M_mh(:); M_ml = M_ml(:);
 
 % Calculation of iterative parameter estimation
 fprintf('\n Iterative calculation: NLS solution \n');
-if GN==1,   relax = 0;                      % gradient relaxation
+if GN==1,   relax = 0;                     % gradient relaxation
 else        relax = 0.01;
 end
+dir = 1;
 [Bn,An] = hm2ba(Hwls);                      % starting values choices
 iter0 = 0; iter = 0;                        % interation number
 relerror0 = Inf; relerror = Inf;            % relative error
-dE_dB = zeros(nrofh*nroff,nrofb);           % parameter error change
+dB = zeros(nrofh*nroff,nrofb);              % parameter error change
 y = ba2theta(Bn,An,n,M_mh,M_ml);            % initial parameters
 EX = kron(ones(nroff,1),(n:-1:0));          % External matrix
 W = kron(ones(1,n+1),waxis);                % Weighting matrix
@@ -50,34 +51,28 @@ while (iter<max_iter)&&(abs(relerror)>max_err)
       E = [E; (FRF(:,i)-Bjw(:,i)./Ajw).*FRF_W(:,i) ];
   end
   FRF_WD = FRF_W./kron(ones(1,nrofh),Ajw.^2);
-
-  dE_dA = [];
   EX = kron(ones(nrofh*nroff,1),(n-1:-1:0));
   W = kron(ones(nrofh,n),waxis);
-  dE_dA = (W.^EX).*kron(ones(1,n),FRF_WD(:).*Bjw(:));
-  FRF_WD = FRF_W./kron(ones(1,nrofh),Ajw);
-
+  dA = (W.^EX).*kron(ones(1,n),FRF_WD(:).*Bjw(:));
+  
   index = 1;
+  FRF_WD = FRF_W./kron(ones(1,nrofh),Ajw);
   for i=1:nrofh
       W = kron(ones(1,M_mh(i)-M_ml(i)+1),waxis);
       EX = kron(ones(nroff,1),[M_mh(i):-1:M_ml(i)]);
       U = (W.^EX).*-kron(ones(1,M_mh(i)-M_ml(i)+1),FRF_WD(:,i));
-      dE_dB(nroff*(i-1)+1:nroff*i,index:index+M_mh(i)-M_ml(i)) = U;
+      dB(nroff*(i-1)+1:nroff*i,index:index+M_mh(i)-M_ml(i)) = U;
       index = index + M_mh(i)-M_ml(i)+1;
   end
-  J = [real(dE_dA) real(dE_dB) ; imag(dE_dA) imag(dE_dB)];
+  J = [real(dA) real(dB) ; imag(dA) imag(dB)];
   e = [real(E) ; imag(E)];
   JtJ = J'*J;
-  Jte = J'*e;
-  diagJtJ = diag(JtJ);
   
-  A1 = J;
-  A2 = sqrt(relax*diag(diagJtJ+max(diagJtJ)*eps));
-  A = [A1 ; A2];
+  A = [J ; sqrt(relax*diag(diag(JtJ)+max(diag(JtJ))*eps))];
   b = [e; zeros(nrofp,1)];
-  dy = - pinv(A)*b;  
+  dy = -pinv(A)*b;  
   y0 = y;
-  y = y + dy;
+  y = y + dy*dir;
 
   [Bn,An] = theta2ba(y,n,M_mh,M_ml); 
   cost = nlsfdi_res(Bn,An,freq,FRF,FRF_W,cORd,fs);
@@ -93,8 +88,13 @@ while (iter<max_iter)&&(abs(relerror)>max_err)
      [Bn,An] = theta2ba(y,n,M_mh,M_ml);
      relax = relax*10;              % increasing Levenberg factor
   end
-  fprintf('Iter %g: index = %g, cost = %g, rel.err = %g\n',...
-           iter, iter0, cost0, relerror0)
+  if relax > 1e5
+      dir = -1*dir;
+      relax = 0.1;
+  end
+  
+  fprintf('Iter %g: cost = %g, err = %g, r = %g \n',...
+           iter, cost0, relerror0, relax)
 end
 Hnls = ba2hm(Bn,An,nrofi,nrofo);
 
