@@ -17,7 +17,7 @@ harm.fr = 1.02;         % frequency log ratio
 % Design Options:
 options.itp = 'r';      % init phase type:  s=schroeder/r=random
 options.ctp = 'c';      % compression type: c=comp/n=no_comp
-options.dtp = 'o';      % signal type:      f=full/ O=odd-odd
+options.dtp = 'f';      % signal type:      f=full/ O=odd-odd
                         %                   o=odd / O2=special odd-odd
 options.gtp = 'l';      % grid type: l=linear/q=quasi-logarithmic
 % Ampliude spectrum:

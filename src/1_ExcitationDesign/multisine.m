@@ -1,24 +1,29 @@
 function output = multisine(harm, Hampl, options)
 %MULTISINE - Multisine Excitation Signal generation (MIMO).
-%   [x,Xs,freqs,Xt,freqt] = multisine(harmonics, Hamp, options)
+%   ms = multisine(harmonics, Hamp, options)
 %
 % HARMONICS = parameter set concerning the excited harmonics
-%   <>.fs     : Sampling frequency in Hz
-%   <>.fl/.fh : Lowest/Highest frequency lines
-%   <>.df     : Spectral lines density
-%   <>.fr     : Quasi-logarithmic freq ratio
+%   <>.fs      : Sampling frequency in Hz
+%   <>.fl/.fh  : Lowest/Highest frequency lines
+%   <>.df      : Spectral lines density
+%   <>.fr      : Quasi-logarithmic freq ratio
 % AMPLITUDE = vectors of transfer functions with input ampl spectrum
 % OPTIONS = parameter set containing multisine design options
-%   <>.itp    : Initial phase type - 's' schroeder / 'r' random
-%   <>.ctp    : Compression type   - 'c' compressed / 'n' non-compressed
-%   <>.gtp    : Grid spacing type  - 'l' linear / 'q' quasi-logarithmic
-%   <>.dtp    : Density type       - 'f' full / 'o' odd / 'O' odd-odd
+%   <>.itp     : Initial phase type - 's' schroeder / 'r' random
+%   <>.ctp     : Compression type   - 'c' compressed / 'n' non-compressed
+%   <>.gtp     : Grid spacing type  - 'l' linear / 'q' quasi-logarithmic
+%   <>.dtp     : Density type       - 'f' full / 'o' odd / 'O' odd-odd
 % OUTPUT = time/frequency information of designed multisine signal
-%   <>.x/time : time domain data of multisine
-%   <>X/freq  : frequency domain data of multisine
-%   <>.ex     : index of excited frequency lines
-%   <>.cf     : Crest factor of the different signals
-% Author      : Thomas Beauduin, KULeuven, PMA division, 2014
+%   <>.x/time  : time domain data of multisine
+%   <>.X/freq  : frequency domain data of multisine
+%   <>.ex      : index of excited frequency lines
+%   <>.cf      : Crest factor of the different signals
+%   <>.harm    : Harmonics information
+%   <>.Hampl   : Amplitude information
+%   <>.options : Multisine parameter information
+% Author       : Thomas Beauduin, KULeuven, PMA division, 2014
+%              : Wataru Ohnishi, The University of Tokyo, 2019
+%                (modification)
 %%%%%
 
 % Calculation of signal parameters
@@ -96,5 +101,10 @@ end
 output.x = x; output.time = time;
 output.X = X; output.freq = freq; 
 output.ex = ex; output.cf = cf;
+
+% Output setting information
+output.harm = harm;
+output.options = options;
+output.Hampl = Hampl;
 
 end
