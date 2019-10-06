@@ -106,5 +106,6 @@ output.ex = ex; output.cf = cf;
 output.harm = harm;
 output.options = options;
 output.Hampl = Hampl;
+output.nrofs = length(squeeze(x));
 
 end
