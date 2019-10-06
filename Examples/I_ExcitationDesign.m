@@ -4,6 +4,7 @@
 % Descr.:   example of several excitation signals design
 %           to demonstrate the design parameters/options
 % Author:   Thomas Beauduin, KULeuven, PMA division, 2014
+%           Wataru Ohnishi, The University of Tokyo, 2019
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 
@@ -44,6 +45,10 @@ for ii = 1:nrofi
         old = axis; axis([0, length(ms.x), old(3:4)])
     end
 end
+
+% header file output
+path = multisine2hdr(ms,'data/multisine.h')
+
 pause
 
 % NOTES:
