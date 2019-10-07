@@ -47,7 +47,7 @@ for ii = 1:nrofi
 end
 
 % header file output
-path = multisine2hdr(ms,'data/multisine.h')
+% path = multisine2hdr(ms,'data/multisine.h');
 
 pause
 

@@ -13,12 +13,12 @@ load('private/MultisineTypeA.mat');     % schoeder multisine experiment
 % remove transient periods, offsets and trends
 trans = 1;                      % number of transient periods
 trend = 0;                      % period trend removal flag
-r0 = (1:nrofs);                 % time visualization range
-rn = (nrofs*5+1:(5+1)*nrofs);   % data visualization range
+r0 = (1:ms.nrofs);                 % time visualization range
+rn = (ms.nrofs*2+1:(2+1)*ms.nrofs);   % data visualization range
 input = [iq_adx];               % input data to motor bench
 output = [theta_mx,-theta_my];  % output data of motor bench
-[x,time] = pretreat(input,nrofs,fs,trans,trend);
-[y,time] = pretreat(output,nrofs,fs,trans,trend);
+[x,time] = pretreat(input,ms.nrofs,ms.harm.fs,trans,trend);
+[y,time] = pretreat(output,ms.nrofs,ms.harm.fs,trans,trend);
 
 figure
 subplot(211), plot(time(r0),x(rn,:))
@@ -30,15 +30,15 @@ pause
 
 %% STEP 2: NON-PARAMETRIC ESTIMATION
 % fft data and vizualize in freq domain position data
-[X,Y,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df);
+Pest = time2frf_ml_struct(x,y,ms);
 
 figure
-subplot(221), semilogx(freq,dbm(FRFs(:,1)),freq,dbm(FRFn(:,1)),'r');
-    title('Motor-side'), ylabel('Magnitude [dB]'), xlim([fl,fh])
-subplot(223), semilogx(freq,phs(FRFs(:,1),1))
-    xlabel('Frequency [Hz]'), ylabel('Phase [deg]'), xlim([fl,fh])
-subplot(222), semilogx(freq,dbm(FRFs(:,2)),freq,dbm(FRFn(:,2)),'r');
-    title('Load-side'), ylabel('Magnitude [dB]'), xlim([fl,fh])
-subplot(224), semilogx(freq,phs(FRFs(:,2)))
-    xlabel('Frequency [Hz]'), ylabel('Phase [deg]'), xlim([fl,fh])
+subplot(221), semilogx(Pest.freq,dbm(squeeze(Pest.resp(1,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,1)),'r');
+    title('Motor-side'), ylabel('Magnitude [dB]');
+subplot(223), semilogx(Pest.freq,phs(squeeze(Pest.resp(1,1,:)),1))
+    xlabel('Frequency [Hz]'), ylabel('Phase [deg]');
+subplot(222), semilogx(Pest.freq,dbm(squeeze(Pest.resp(2,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,2)),'r');
+    title('Load-side'), ylabel('Magnitude [dB]');
+subplot(224), semilogx(Pest.freq,phs(squeeze(Pest.resp(2,1,:)),1))
+    xlabel('Frequency [Hz]'), ylabel('Phase [deg]');
  
