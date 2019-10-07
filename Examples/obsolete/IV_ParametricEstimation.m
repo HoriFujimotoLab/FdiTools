@@ -23,7 +23,7 @@ output = [theta_mx,-theta_my];  % output data of motor bench
 %% STEP 4: PARAMETRIC ESTIMATION
 % deterministric/stochastic estimation with non-parametric noise model
 n=4;                        % model order of denominator polynomial
-mh=[2,0].'; ml=[0,0].';     % model orders of numerator polynomial
+mh=[2;0;]; ml=[0;0;];     % model orders of numerator polynomial
 relvar=1e-10;               % relative variation of costfunction (stop)
 iter=5e2;                   % maximum number of iterations (stop)
 GN = 0;                     % Levenberg-Marquardt optimization
