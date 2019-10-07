@@ -18,7 +18,7 @@ output = [theta_mx,-theta_my];  % output data of motor bench
 [y,time] = pretreat(output,ms.nrofs,ms.harm.fs,trans,trend);
 
 % Non-parametric estimation of frf matrix data
-Pest = time2frf_ml_struct(x,y,ms);
+Pest = time2frf_ml(x,y,ms);
 
 %% STEP 4: PARAMETRIC ESTIMATION
 % deterministric/stochastic estimation with non-parametric noise model

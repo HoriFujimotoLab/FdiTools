@@ -14,7 +14,7 @@ function [Hml,Hls] = mlfdi(varargin)
 % cORd, fs  : Continuous 'c' or discrete 'd' model identification
 % Bm/l,Am/l : ML/LS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
-%             Wataru Ohnishi, The University of Tokyo, 2019 (modification)
+%             Wataru Ohnishi, The University of Tokyo, 2019
 % See also WLSFDI, NLSFDI, GTLSFDI, BTLSFDI
 %%%%%
 

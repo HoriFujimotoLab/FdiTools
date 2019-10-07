@@ -1,17 +1,22 @@
-function [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df)
+function varargout = time2frf_ml(varargin)
 %TIME2FRF_ML - maximum-likelihood estimation of FRF (MIMO).
+% structured input
+%   Pest = time2frf_ml(x,y,ms);
+% ms        : generated multisine obtained by multisine.m
+% Pest      : Estimated model structure (frd)
+% FdiTools classical input
 %   [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,nrofs)
 % x, y      : data vectors of periodic broad-band measurement
 % fs,df     : sampling frequency and frequency resolution
 % fl,fh     : lowest & highest frequency of excitated band
 % FRFm,FRFn : measurement & noise frequency response functions
 % sX2,sY2   : variance of real & imaginary parts of X,Y noise
-% cXY       : covariance between real & imaginary parts of X,Y noise 
+% cXY       : covariance between real & imaginary parts of X,Y noise
 % sCR       : cramer-rao variance on measurement FRF
 % Author    : Thomas Beauduin, KULeuven, PMA, Feb-2014
+%             Wataru Ohnishi, The University of Tokyo, 2019
 %%%%%
 % future release will include full MIMO FRF processing
-% future release will include structured input/output:
 % EXC (data)
 % <>.fs         :
 % <>.fl         :
@@ -39,6 +44,26 @@ function [Xs,Ys,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,fl,fh,df)
 % <>.frf_type   : ml/lpm/lrm/log/h2/h1
 %%%%
 
+if length(varargin) < 5 % structured input
+    x = varargin{1};
+    y = varargin{2};
+    ms = varargin{3};
+    if nargin == 3
+        flagTime = false;
+    end
+    % decompose structure
+    fs = ms.harm.fs; fl = ms.harm.fl; fh = ms.harm.fh; df = ms.harm.df;
+    
+else % FdiTools classical input
+    x = varargin{1};
+    y = varargin{2};
+    fs = varargin{3};
+    fl = varargin{4};
+    fh = varargin{5};
+    df = varargin{6};
+end
+
+
 [~,nrofi] = size(x);                                % number of inputs
 [~,nrofo] = size(y);                                % number of outputs
 nrofh = nrofi*nrofo;                                % number of tf's (Hxy)
@@ -49,20 +74,20 @@ nroff = length(freq);                               % number of freq lines
 nrofp = double(floor(length(x)/nrofs));             % number of period
 
 % Calculation of signal fft data
-INP = zeros(nroff,nrofp,nrofi); 
+INP = zeros(nroff,nrofp,nrofi);
 OUT = zeros(nroff,nrofp,nrofo);
 Xs = zeros(nroff,nrofi); sX2 = zeros(nroff,nrofi);
 Ys = zeros(nroff,nrofo); sY2 = zeros(nroff,nrofo);
-cXY = zeros(nroff,nrofh); 
-FRFs = zeros(nroff,nrofh); 
+cXY = zeros(nroff,nrofh);
+FRFs = zeros(nroff,nrofh);
 sCR = zeros(nroff,nrofh);
 for i=1:nrofi
     for p=1:nrofp
         Ip = fft(x(1+(p-1)*nrofs:p*nrofs,i));       % fft of 1x period
         INP(:,p,i) = Ip(nl+1:nh+1);                 % fft dc-term removal
- %       for f=1:nroff
- %           INP(f,p,i)=INP(f,p,i)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
- %       end
+        %       for f=1:nroff
+        %           INP(f,p,i)=INP(f,p,i)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
+        %       end
     end
     Xs(:,i) = mean(INP(:,:,i),2);
     sX2(:,i)=((std(INP(:,:,i),0,2)).^2)/2/nrofp;    % measurement variances
@@ -71,9 +96,9 @@ for o=1:nrofo
     for p=1:nrofp
         Op = fft(y(1+(p-1)*nrofs:p*nrofs,o));
         OUT(:,p,o) = Op(nl+1:nh+1);
-  %      for f=1:nroff
-  %          INP(f,p,o)=INP(f,p,o)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
-  %      end
+        %      for f=1:nroff
+        %          INP(f,p,o)=INP(f,p,o)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
+        %      end
     end
     Ys(:,o) = mean(OUT(:,:,o),2);
     sY2(:,o)=((std(OUT(:,:,o),0,2)).^2)/2/nrofp;
@@ -113,5 +138,43 @@ for i=1:nrofi
         FRFn(:,(i-1)*nrofo+o) = Yn(:,o)./Xs(:,i);   % noise frf calc
     end
 end
-                                  
+
+if length(varargin) < 5 % structured i/o
+    Pest = frd(FRFs(:,1),freq,'FrequencyUnit','Hz');
+    % for SIMO model id
+    if nrofo > 1
+        for o=2:nrofo
+            Pest = [Pest;frd(FRFs(:,o),freq,'FrequencyUnit','Hz');];
+        end
+    end
+    if nrofi > 1
+        error('MISO or MIMO is not implemented yet!');
+    end
+    Pest.UserData.X = Xs;
+    Pest.UserData.Y = Ys;
+    Pest.UserData.FRFn = FRFn;
+    Pest.UserData.sX2 = sX2;
+    Pest.UserData.sY2 = sY2;
+    Pest.UserData.cXY = cXY;
+    Pest.UserData.sCR = sCR;
+    Pest.UserData.ms = ms;
+    
+    if flagTime % save Time domain data
+        Pest.UserData.x = x;
+        Pest.UserData.y = y;
+    end
+    
+    varargout{1} = Pest;
+else % FdiTools classical input
+    varargout{1} = Xs;
+    varargout{2} = Ys;
+    varargout{3} = FRFs;
+    varargout{4} = FRFn;
+    varargout{5} = freq;
+    varargout{6} = sX2;
+    varargout{7} = sY2;
+    varargout{8} = cXY;
+    varargout{9} = sCR;
+end
+
 end

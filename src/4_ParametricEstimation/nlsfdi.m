@@ -14,7 +14,7 @@ function [Hnls,Hwls] = nlsfdi(varargin)
 % cORd, fs  : Continuous 'c' or discrete 'd' model identification
 % Bn/w,An/w : NLS/WLS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
-%             Wataru Ohnishi, The University of Tokyo, 2019 (modification)
+%             Wataru Ohnishi, The University of Tokyo, 2019
 %%%%%
 
 if length(varargin) < 10 % structured input

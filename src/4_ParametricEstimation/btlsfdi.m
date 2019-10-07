@@ -15,7 +15,7 @@ function [Hbtls,Hgtls] = btlsfdi(varargin)
 % cORd, fs    : Continuous or discrete time model identification
 % Hbtls,Hgtls : BTLS/GTLS iterative & initial estimation solution
 % Author      : Thomas Beauduin, KULeuven, PMA division, 2014
-%               Wataru Ohnishi, The University of Tokyo, 2019 (modification)
+%               Wataru Ohnishi, The University of Tokyo, 2019
 %%%%%
 
 if length(varargin) < 9 % structured input

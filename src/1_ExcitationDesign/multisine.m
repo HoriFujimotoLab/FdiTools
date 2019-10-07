@@ -23,7 +23,6 @@ function output = multisine(harm, Hampl, options)
 %   <>.options : Multisine parameter information
 % Author       : Thomas Beauduin, KULeuven, PMA division, 2014
 %              : Wataru Ohnishi, The University of Tokyo, 2019
-%                (modification)
 %%%%%
 
 % Calculation of signal parameters
