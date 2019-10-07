@@ -5,6 +5,7 @@
 %           and non-parametric synchronized FRF estimation
 % System:   Conventional motor-bench with flexible coupling
 % Author:   Thomas Beauduin, KULeuven, PMA division, 2014
+%           Wataru Ohnishi, The University of Tokyo, 2019
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 load('private/MultisineTypeA.mat');     % schoeder multisine experiment

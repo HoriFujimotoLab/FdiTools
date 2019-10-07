@@ -5,6 +5,7 @@
 %           from frequency-domain data with known noise model.
 % System:   Conventional motor-bench with flexible coupling.
 % Author:   Thomas Beauduin, KULeuven, PMA division, 2014
+%           Wataru Ohnishi, The University of Tokyo, 2019
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all; close all; clc;
 load('private/MultisineTypeA.mat');     % schoeder multisine experiment
@@ -33,18 +34,15 @@ relax = 1;                  % relaxation factor for btls estimation
 freq = Pest.freq;
 
 % Deterministic methods: non-linear least squares
-[SYS.nls,SYS.wls] = nlsfdi(FRFs,freq,FRF_W,n,mh,ml,iter,relvar,GN,cORd,fs); % classic
-[SYS.nls,SYS.wls] = nlsfdi(Pest,FRF_W,n,mh,ml,iter,relvar,GN,cORd); % new
+[SYS.nls,SYS.wls] = nlsfdi(Pest,FRF_W,n,mh,ml,iter,relvar,GN,cORd);
     FRF.nls = hfrf(SYS.nls,freq);
     FRF.wls = hfrf(SYS.wls,freq);
 % Stochastic methods: maximum likelihood estimation
-[SYS.ml,SYS.ls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,mh,ml,iter,relvar,GN,cORd,fs); % classic
-[SYS.ml,SYS.ls]  = mlfdi(Pest,n,mh,ml,iter,relvar,GN,cORd); % new
+[SYS.ml,SYS.ls]  = mlfdi(Pest,n,mh,ml,iter,relvar,GN,cORd);
     FRF.ml = hfrf(SYS.ml,freq);
     FRF.ls = hfrf(SYS.ls,freq);
 
 % Stochastic methods: bootstrapped total least squares
-[SYS.btls,SYS.gtls] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,relax,iter,relvar,cORd,fs);
 [SYS.btls,SYS.gtls] = btlsfdi(Pest,n,mh,ml,relax,iter,relvar,cORd);
     FRF.btls = hfrf(SYS.btls,freq);
     FRF.gtls = hfrf(SYS.gtls,freq);
