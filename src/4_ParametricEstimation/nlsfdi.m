@@ -1,5 +1,9 @@
-function [Hnls,Hwls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
+function [Hnls,Hwls] = nlsfdi(varargin)
 % NLLSFDI - Non-linear Least Squares FDI (MIMO).
+% structured input
+%   [Hnls,Hwls] = nlsfdi(Pest,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd)
+% Pest        : Estimated model structure (frd) obtained by time2frf_ml.m
+% FdiTools classical input
 %   [Hnls,Hwls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cORd,fs)
 % FRF,freq  : Transfer function frequency domain data
 % FRF_W     : matrix of frequency weighting function
@@ -10,7 +14,37 @@ function [Hnls,Hwls] = nlsfdi(FRF,freq,FRF_W,n,M_mh,M_ml,max_iter,max_err,GN,cOR
 % cORd, fs  : Continuous 'c' or discrete 'd' model identification
 % Bn/w,An/w : NLS/WLS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
+%             Wataru Ohnishi, The University of Tokyo, 2019 (modification)
 %%%%%
+
+if length(varargin) < 10 % structured input
+    Pest = varargin{1};
+    FRF_W = varargin{2};
+    n = varargin{3};
+    M_mh = varargin{4};
+    M_ml = varargin{5};
+    max_iter = varargin{6};
+    max_err = varargin{7};
+    GN = varargin{8};
+    cORd = varargin{9};
+    
+    FRF = squeeze(Pest.resp).';
+    freq = Pest.freq;
+    fs = Pest.UserData.ms.harm.fs;
+else % FdiTools classical input
+    FRF = varargin{1};
+    freq = varargin{2};
+    FRF_W = varargin{3};
+    n = varargin{4};
+    M_mh = varargin{5};
+    M_ml = varargin{6};
+    max_iter = varargin{7};
+    max_err = varargin{8};
+    GN = varargin{9};
+    cORd = varargin{10};
+    fs = varargin{11};
+end
+
 nrofi = size(M_mh,2);           % number of inputs
 nrofo = size(M_mh,1);           % number of outputs
 nrofh = nrofi*nrofo;            % number of transfer functions

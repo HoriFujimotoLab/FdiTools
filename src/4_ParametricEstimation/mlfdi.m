@@ -1,6 +1,10 @@
-function [Hml,Hls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+function [Hml,Hls] = mlfdi(varargin)
 % MLFDI - Maximum Likelihood Estimation (MIMO).
-%   [Hml,Hls]=mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
+% structured input
+%   [Hml,Hls] = mlfdi(Pest,n,M_mh,M_ml,iterno,relvar,GN,cORd)
+% Pest        : Estimated model structure (frd) obtained by time2frf_ml.m
+% FdiTools classical input
+%   [Hml,Hls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cORd,fs)
 % X,Y,freq  : Input & output frequency domain data
 % sX2,sY2   : variance of X & Y frequency domain data
 % cXY       : Covariance between X & Y frequency domain data
@@ -10,9 +14,45 @@ function [Hml,Hls] = mlfdi(X,Y,freq,sX2,sY2,cXY,n,M_mh,M_ml,iterno,relvar,GN,cOR
 % cORd, fs  : Continuous 'c' or discrete 'd' model identification
 % Bm/l,Am/l : ML/LS iterative & initial estimation solution
 % Author    : Thomas Beauduin, KULeuven, PMA division, 2014
-%
+%             Wataru Ohnishi, The University of Tokyo, 2019 (modification)
 % See also WLSFDI, NLSFDI, GTLSFDI, BTLSFDI
 %%%%%
+
+if length(varargin) < 9 % structured input
+    Pest = varargin{1};
+    n = varargin{2};
+    M_mh = varargin{3};
+    M_ml = varargin{4};
+    iterno = varargin{5};
+    relvar = varargin{6};
+    GN = varargin{7};
+    cORd = varargin{8};
+    
+    X = Pest.UserData.X;
+    Y = Pest.UserData.Y;
+    freq = Pest.freq;
+    sX2 = Pest.UserData.sX2;
+    sY2 = Pest.UserData.sY2;
+    cXY = Pest.UserData.cXY;
+    fs = Pest.UserData.ms.harm.fs;
+else % FdiTools classical input
+    X = varargin{1};
+    Y = varargin{2};
+    freq = varargin{3};
+    sX2 = varargin{4};
+    sY2 = varargin{5};
+    cXY = varargin{6};
+    n = varargin{7};
+    M_mh = varargin{8};
+    M_ml = varargin{9};
+    iterno = varargin{10};
+    relvar = varargin{11};
+    GN = varargin{12};
+    cORd = varargin{13};
+    fs = varargin{14};
+end
+
+
 nrofi = size(X,2);                      % number of inputs
 nrofo = size(Y,2);                      % number of outputs
 nrofh = nrofi*nrofo;                    % number of transfer functions

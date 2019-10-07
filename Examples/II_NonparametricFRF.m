@@ -31,6 +31,7 @@ pause
 %% STEP 2: NON-PARAMETRIC ESTIMATION
 % fft data and vizualize in freq domain position data
 Pest = time2frf_ml_struct(x,y,ms);
+[X,Y,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,ms.harm.fl,ms.harm.fh,ms.harm.df);
 
 figure
 subplot(221), semilogx(Pest.freq,dbm(squeeze(Pest.resp(1,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,1)),'r');

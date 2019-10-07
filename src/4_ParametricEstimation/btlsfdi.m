@@ -1,17 +1,58 @@
-function [Hbtls,Hgtls] = btlsfdi(X,Y,freq,n,M_mh,M_ml,sY2,sX2,cXY,relax,max_iter,max_err,cORd,fs)
+function [Hbtls,Hgtls] = btlsfdi(varargin)
 %BTLSFDI - Bootstrapped Total Least Squares Estimation (MIMO).
-%   [Bb,Ab,Bg,Ag] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,iter,relax,max_err)
-% X,Y,freq  : Input & output frequency domain data
-% sX2,sY2   : variance of X & Y frequency domain data
-% cXY       : Covariance between X & Y frequency domain data
-% n,mh,ml   : Order of the denominator/nominator polynomials
-% relax     : Relaxation factor: 0 =< relax =< 1 (r=0: GTLS, r=1: full BTLS)
-% max_iter  : Maximum number of iterations (stop criterion)
-% max_err   : Maximum model relative error (stop criterion)
-% cORd, fs  : Continuous or discrete time model identification
-% Bb/g,Ab/g : BTLS/GTLS iterative & initial estimation solution
-% Author    : Thomas Beauduin, KULeuven, PMA division, 2014
+% structured input
+%   [Hbtls,Hgtls] = btlsfdi(Pest,n,mh,ml,iter,relax,max_err)
+% Pest        : Estimated model structure (frd) obtained by time2frf_ml.m
+% FdiTools classical input
+%   [Hbtls,Hgtls] = btlsfdi(X,Y,freq,n,mh,ml,sY2,sX2,cXY,iter,relax,max_err,fs)
+% X,Y,freq    : Input & output frequency domain data
+% sX2,sY2     : variance of X & Y frequency domain data
+% cXY         : Covariance between X & Y frequency domain data
+% n,mh,ml     : Order of the denominator/nominator polynomials
+% relax       : Relaxation factor: 0 =< relax =< 1 (r=0: GTLS, r=1: full BTLS)
+% max_iter    : Maximum number of iterations (stop criterion)
+% max_err     : Maximum model relative error (stop criterion)
+% cORd, fs    : Continuous or discrete time model identification
+% Hbtls,Hgtls : BTLS/GTLS iterative & initial estimation solution
+% Author      : Thomas Beauduin, KULeuven, PMA division, 2014
+%               Wataru Ohnishi, The University of Tokyo, 2019 (modification)
 %%%%%
+
+if length(varargin) < 9 % structured input
+    Pest = varargin{1};
+    n = varargin{2};
+    M_mh = varargin{3};
+    M_ml = varargin{4};
+    relax = varargin{5};
+    max_iter = varargin{6};
+    max_err = varargin{7};
+    cORd = varargin{8};
+
+    X = Pest.UserData.X;
+    Y = Pest.UserData.Y;
+    freq = Pest.freq;
+    sX2 = Pest.UserData.sX2;
+    sY2 = Pest.UserData.sY2;
+    cXY = Pest.UserData.cXY;
+    fs = Pest.UserData.ms.harm.fs;
+else % FdiTools classical input
+    X = varargin{1};
+    Y = varargin{2};
+    freq = varargin{3};
+    n = varargin{4};
+    M_mh = varargin{5};
+    M_ml = varargin{6};
+    sY2 = varargin{7};
+    sX2 = varargin{8};
+    cXY = varargin{9};
+    relax = varargin{10};
+    max_iter = varargin{11};
+    max_err = varargin{12};
+    cORd = varargin{13};
+    fs = varargin{14};
+end
+
+
 nrofi = size(X,2);                      % number of inputs
 nrofo = size(Y,2);                      % number of outputs
 nrofh = nrofi*nrofo;                    % number of transfer functions
