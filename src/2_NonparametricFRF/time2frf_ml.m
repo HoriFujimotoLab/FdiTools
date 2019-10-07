@@ -140,6 +140,13 @@ for i=1:nrofi
 end
 
 if length(varargin) < 5 % structured i/o
+    % delete data for qlog excitation
+    if any(strcmp(ms.options.gtp,{'q','qlog'}))
+        excond = ms.ex-(ms.ex(1)-1); freq = ms.freq(ms.ex);
+        Xs = Xs(excond); Ys = Ys(excond,:); FRFs = FRFs(excond,:); FRFn = FRFn(excond,:);
+        sX2 = sX2(excond,:); sY2 = sY2(excond,:); cXY = cXY(excond,:); sCR = sCR(excond,:);
+    end
+    
     Pest = frd(FRFs(:,1),freq,'FrequencyUnit','Hz');
     % for SIMO model id
     if nrofo > 1

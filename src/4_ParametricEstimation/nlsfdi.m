@@ -28,7 +28,13 @@ if length(varargin) < 10 % structured input
     GN = varargin{8};
     cORd = varargin{9};
     
-    FRF = squeeze(Pest.resp).';
+    FRF = squeeze(Pest.resp);
+    if size(FRF,1) ~= length(Pest.freq)
+        FRF = FRF.';
+    end
+    if size(FRF_W,1) ~= length(Pest.freq)
+        FRF_W = FRF_W.';
+    end
     freq = Pest.freq;
     fs = Pest.UserData.ms.harm.fs;
 else % FdiTools classical input
