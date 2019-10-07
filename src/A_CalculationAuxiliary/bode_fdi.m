@@ -29,6 +29,8 @@ for k = 1:N
         end
     end
     h = semilogx(data{k}.frequency,phasedeg); hold on;
+    yticks(option.pmin:90:option.pmax);
+    ylim([option.pmin,option.pmax]);
 end
 
 subplot(2,1,1);

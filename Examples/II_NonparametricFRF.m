@@ -31,16 +31,23 @@ pause
 
 %% STEP 2: NON-PARAMETRIC ESTIMATION
 % fft data and vizualize in freq domain position data
-Pest = time2frf_ml_struct(x,y,ms);
-[X,Y,FRFs,FRFn,freq,sX2,sY2,cXY,sCR] = time2frf_ml(x,y,fs,ms.harm.fl,ms.harm.fh,ms.harm.df);
+Pest = time2frf_ml(x,y,ms);
 
-figure
-subplot(221), semilogx(Pest.freq,dbm(squeeze(Pest.resp(1,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,1)),'r');
-    title('Motor-side'), ylabel('Magnitude [dB]');
-subplot(223), semilogx(Pest.freq,phs(squeeze(Pest.resp(1,1,:)),1))
-    xlabel('Frequency [Hz]'), ylabel('Phase [deg]');
-subplot(222), semilogx(Pest.freq,dbm(squeeze(Pest.resp(2,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,2)),'r');
-    title('Load-side'), ylabel('Magnitude [dB]');
-subplot(224), semilogx(Pest.freq,phs(squeeze(Pest.resp(2,1,:)),1))
-    xlabel('Frequency [Hz]'), ylabel('Phase [deg]');
+title('Motor-side');
+bode_fdi({Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
+legend('FRF','FRFn');
+
+title('Load-side');
+bode_fdi({Pest(2,1)},[Pest.freq,Pest.UserData.FRFn(:,2)]);
+legend('FRF','FRFn');
+
+% figure
+% subplot(221), semilogx(Pest.freq,dbm(squeeze(Pest.resp(1,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,1)),'r');
+%     title('Motor-side'), ylabel('Magnitude [dB]');
+% subplot(223), semilogx(Pest.freq,phs(squeeze(Pest.resp(1,1,:)),1))
+%     xlabel('Frequency [Hz]'), ylabel('Phase [deg]');
+% subplot(222), semilogx(Pest.freq,dbm(squeeze(Pest.resp(2,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,2)),'r');
+%     title('Load-side'), ylabel('Magnitude [dB]');
+% subplot(224), semilogx(Pest.freq,phs(squeeze(Pest.resp(2,1,:)),1))
+%     xlabel('Frequency [Hz]'), ylabel('Phase [deg]');
  
