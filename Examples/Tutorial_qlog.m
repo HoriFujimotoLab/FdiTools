@@ -44,6 +44,9 @@ for ii = 1:nrofi
     end
 end
 
+% header file output
+% path = multisine2hdr(ms,'data/multisine.h');
+
 pause
 %% EXPERIMENT
 load('20160829_ident'); % load benchmark model
@@ -74,8 +77,6 @@ subplot(211), plot(time(r0),x(rn,:))
 subplot(212), plot(time(r0),y(rn,:))
     title('output data'), legend('stage position')
     xlabel('time [s]')
-
-    
 
 Pest = time2frf_ml(x,y,ms);
 bode_fdi({mdl.Pv(1,1),Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
