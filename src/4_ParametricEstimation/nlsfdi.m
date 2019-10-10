@@ -36,7 +36,7 @@ if length(varargin) < 10 % structured input
         FRF_W = FRF_W.';
     end
     freq = Pest.freq;
-    fs = Pest.UserData.ms.harm.fs;
+    fs = Pest.UserData.ms(1).harm.fs;
 else % FdiTools classical input
     FRF = varargin{1};
     freq = varargin{2};

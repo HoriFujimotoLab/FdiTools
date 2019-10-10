@@ -47,7 +47,6 @@ end
 % header file output
 % path = multisine2hdr(ms,'data/multisine.h');
 
-pause
 %% EXPERIMENT
 load('20160829_ident'); % load benchmark model
 nrofs = length(ms.x(1,1,:));
@@ -81,8 +80,6 @@ subplot(212), plot(time(r0),y(rn,:))
 Pest = time2frf_ml(x,y,ms);
 bode_fdi({mdl.Pv(1,1),Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
 legend('true','estimated frd','noise');
-
-pause
 
 %% STEP 4: PARAMETRIC ESTIMATION
 % deterministric/stochastic estimation with non-parametric noise model

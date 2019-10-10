@@ -5,6 +5,10 @@ if nargin < 3
     option.pmax = 180;
 end
 
+if ~iscell(data)
+    data = {data};
+end
+
 N = length(data); % number of data
 freq = logspace(0,3,400);
 for k = 1:N
@@ -16,6 +20,7 @@ subplot(2,1,1);
 for k = 1:N
     h = semilogx(data{k}.frequency,mag2db(abs(squeeze(data{k}.ResponseData)))); hold on;
 end
+ylabel('Magnitude [dB]');
 
 subplot(2,1,2);
 for k = 1:N
@@ -32,6 +37,8 @@ for k = 1:N
     yticks(option.pmin:90:option.pmax);
     ylim([option.pmin,option.pmax]);
 end
+ylabel('Phase [deg]');
+xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
 
 subplot(2,1,1);
 h = semilogx(noise(:,1),mag2db(abs(noise(:,2)))); hold on;
