@@ -50,6 +50,8 @@ if length(varargin) < 5 % structured input
     ms = varargin{3};
     if nargin == 3
         flagTime = false;
+    else
+        flagTime = varargin{4};
     end
     % decompose structure
     fs = ms.harm.fs; fl = ms.harm.fl; fh = ms.harm.fh; df = ms.harm.df;

@@ -31,7 +31,8 @@ pause
 
 %% STEP 2: NON-PARAMETRIC ESTIMATION
 % fft data and vizualize in freq domain position data
-Pest = time2frf_ml(x,y,ms);
+flagTime = true;
+Pest = time2frf_ml(x,y,ms,flagTime);
 
 title('Motor-side');
 bode_fdi({Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);

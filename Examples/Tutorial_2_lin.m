@@ -53,7 +53,7 @@ end
 % path = multisine2hdr(ms,'data/multisine.h');
 
 %% EXPERIMENT
-load('20160829_ident'); % load benchmark model
+load('private/20160829_ident'); % load benchmark model
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
 nrofp = 10; % number of period of periodic excitation
@@ -128,7 +128,7 @@ end
 % path = multisine2hdr(ms,'data/multisine.h');
 
 %% EXPERIMENT
-load('20160829_ident'); % load benchmark model
+load('private/20160829_ident'); % load benchmark model
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
 nrofp = 50; % number of period of periodic excitation
