@@ -94,7 +94,7 @@ elseif strcmp(format, 'f') % float
     fprintf(fid,'}; \n');
     fclose(fid);
     
-elseif strcmp(format, 'f') % float for myway
+elseif strcmp(format, 'm') % float for myway
     array_name = ['refvec_' name];
     nrofs_name = ['NROFS_' name];
     fprintf(fid,'#define %s %d \n', nrofs_name, nrofs);
