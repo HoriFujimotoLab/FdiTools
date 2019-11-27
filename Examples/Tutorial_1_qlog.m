@@ -116,4 +116,3 @@ legend('TRUE','FRF','MLE','BTLS','GTLS','sCR')
 % best estimator
 bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.btls},[Pest.freq,Pest.UserData.sCR(:,1)]);
 legend('TRUE','FRF','BTLS','sCR')
-
