@@ -52,8 +52,24 @@ R = zeros(nrofi,nrofi,nh);
 for i=1:nrofi
     w = 1i*2*pi*harm.df*(0:1:nrofs/2-1)';
     X = zeros(nh,1); w = w(1:nh);
-    [Bn,An] = tfdata(Hampl(i),'v');
-    Mag = abs(polyval(Bn,w)./polyval(An,w));
+    S = whos('Hampl');
+    if strcmp(S.class,'frd')
+        if strcmp(Hampl(i).FrequencyUnit,'Hz')
+            Lia = ismembertol(harm.df*(0:1:nrofs/2-1)',Hampl(i).freq);
+            Hampl2 = frd(zeros(size((0:1:nrofs/2-1)')),harm.df*(0:1:nrofs/2-1)','FrequencyUnit','Hz');
+            Hampl2.resp(Lia) = Hampl.resp;
+            Mag = abs(squeeze(Hampl2.resp));
+        elseif strcmp(Hampl(i).FrequencyUnit,'rad/s')
+            Lia = ismembertol(2*pi*harm.df*(0:1:nrofs/2-1)',Hampl(i).freq);
+            Hampl2 = frd(zeros(size((0:1:nrofs/2-1)')),2*pi*harm.df*(0:1:nrofs/2-1)','FrequencyUnit','rad/s');
+            Hampl2.resp(Lia) = Hampl.resp;
+            Mag = abs(squeeze(Hampl2.resp));
+        else, error('error in FrequencyUnit'); 
+        end
+    else
+        [Bn,An] = tfdata(Hampl(i),'v');
+        Mag = abs(polyval(Bn,w)./polyval(An,w));
+    end
     X(ex) = Mag(ex);
     for j=1:nrofi
         switch options.itp
@@ -98,7 +114,7 @@ end
 
 % Ouput structure creation
 output.x = x; output.time = time;
-output.X = X; output.freq = freq; 
+output.X = X; output.freq = freq;
 output.ex = ex; output.cf = cf;
 
 % Output setting information
