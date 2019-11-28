@@ -1,4 +1,9 @@
 function hfig = bode_fdi(data,noise,option)
+% 
+
+if nargin < 2
+    noise = 'sCR';
+end
 
 if nargin < 3
     option.pmin = -180;
@@ -41,6 +46,14 @@ ylabel('Phase [deg]');
 xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
 
 subplot(2,1,1);
-h = semilogx(noise(:,1),mag2db(abs(noise(:,2)))); hold on;
+if ischar(noise)
+    for k = 1:N
+        if isfield(data{k}.UserData,noise)
+            h = semilogx(data{k}.freq,mag2db(abs(getfield(data{k}.UserData,noise)))); hold on;
+        end
+    end
+else
+    h = semilogx(noise(:,1),mag2db(abs(noise(:,2)))); hold on;
+end
 
 end
