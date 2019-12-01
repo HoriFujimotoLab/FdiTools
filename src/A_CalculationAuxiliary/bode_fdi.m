@@ -1,9 +1,20 @@
 function hfig = bode_fdi(data,noise,option)
 % number of plot
-if isfield(data.UserData,'cxy'), Nplot = 3; else, Nplot = 2; end
+if ~iscell(data)
+    data = {data};
+end
+N = length(data); % number of data
+
+Nplot = 2;
+for k = 1:N
+    if isfield(data{k}.UserData,'cxy'), Nplot = 3; end
+end
 
 if nargin < 2
-    if isfield(data.UserData,'cxy'), noise = 'cxy'; else, noise = 'sCR'; end
+    noise = 'sCR';
+    for k = 1:N
+        if isfield(data{k}.UserData,'cxy'), noise = 'cxy'; end
+    end
 end
 
 if nargin < 3
@@ -11,11 +22,7 @@ if nargin < 3
     option.pmax = 180;
 end
 
-if ~iscell(data)
-    data = {data};
-end
 
-N = length(data); % number of data
 freq = logspace(0,3,400);
 for k = 1:N
     try freq = data{k}.freq; catch, data{k} = frd(data{k},freq,'FrequencyUnit','Hz'); end
