@@ -4,12 +4,12 @@ function [path] = multisine2hdr(ms,fname,format)
 % ms        : generated multisine with options
 % fname     : header file name e.g. 'data/ms.h'
 % format    : output format - 'd' double / 'f' float /
-%                             'm' MyWay PE-Expert3 system (MWPE-C6713A DSP) 
+%                             'm' MyWay PE-Expert3 system (MWPE-C6713A DSP)
 % Author    : Thomas Beauduin, University of Tokyo
 %             Wataru Ohnishi, University of Tokyo
 %%%%%
 % NOTE:
-% Extended from traject2hdr.m in 
+% Extended from traject2hdr.m in
 % https://github.com/HoriFujimotoLab/AcqTools
 % Currently, limited to SISO excitation
 
@@ -47,18 +47,23 @@ fprintf(fid, '** dtp = %s : signal type:      f=full/ O=odd-odd \n**            
 fprintf(fid, '** gtp = %s : grid type: l=linear/q=quasi-logarithmic \n', ms.options.gtp);
 fprintf(fid, '*/ \n\n');
 
-[num,den] = tfdata(minreal(ms.Hampl),'v');
-fprintf(fid, '/* AMPLITUDE SPECTRUM \n');
-fprintf(fid, '** ----------------------- \n');
-fprintf(fid, '** tf([num,den]) \n');
-fprintf(fid, '** num = [ ');
-fprintf(fid, '%e ', num);
-fprintf(fid, ']\n');
-fprintf(fid, '** den = [ ');
-fprintf(fid, '%e ', den);
-fprintf(fid, ']\n');
-fprintf(fid, '*/ \n\n');
-
+Hampl = ms.Hampl;
+S = whos('Hampl');
+if strcmp(S.class,'frd')
+    fprintf(fid, '/* NON-PARAMETRIC WEIGHTING */ \n');
+else
+    [num,den] = tfdata(minreal(ms.Hampl),'v');
+    fprintf(fid, '/* AMPLITUDE SPECTRUM \n');
+    fprintf(fid, '** ----------------------- \n');
+    fprintf(fid, '** tf([num,den]) \n');
+    fprintf(fid, '** num = [ ');
+    fprintf(fid, '%e ', num);
+    fprintf(fid, ']\n');
+    fprintf(fid, '** den = [ ');
+    fprintf(fid, '%e ', den);
+    fprintf(fid, ']\n');
+    fprintf(fid, '*/ \n\n');
+end
 
 if strcmp(format, 'd') % double
     array_name = ['refvec_' name];
