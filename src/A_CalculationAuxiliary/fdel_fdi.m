@@ -16,7 +16,7 @@ N = length(sname);
 for k = 1:N
     temp = getfield(in.UserData,sname{k});
     in.UserData = rmfield(in.UserData,sname{k});
-    in.UserData = setfield(in.UserData,sname{k},[temp(1:kmin-1);temp(kmax+1:end);]);
+    in.UserData = setfield(in.UserData,sname{k},[temp(1:kmin-1,:);temp(kmax+1:end,:);]);
 end
 out = in;
 end

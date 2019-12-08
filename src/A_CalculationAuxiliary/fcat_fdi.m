@@ -27,7 +27,7 @@ for k = 1:N
     freqmerge = [sys1.freq;sys2.freq;];
     fieldmerge = [temp1;temp2;];
     [~,I] = sort(freqmerge);
-    fieldmerge = fieldmerge(I);
+    fieldmerge = fieldmerge(I,:);
 %     sysin.UserData = rmfield(sysin.UserData,sname{k});
     sysin.UserData = setfield(sysin.UserData,sname{k},fieldmerge);
 end

@@ -18,21 +18,20 @@ if nargin < 2
 end
 
 if nargin < 3
-    option.pmin = -180;
-    option.pmax = 180;
+    option = [];
 end
-
+if ~isfield(option,'pmin'), option.pmin = -180; option.pmax = 180; end
 
 freq = logspace(0,3,400);
 for k = 1:N
     try freq = data{k}.freq; catch, data{k} = frd(data{k},freq,'FrequencyUnit','Hz'); end
 end
-
 hfig = figure;
 subplot(Nplot,1,1);
 for k = 1:N
     h = semilogx(data{k}.frequency,mag2db(abs(squeeze(data{k}.ResponseData)))); hold on;
 end
+if isfield(option,'title'), title(option.title); end
 ylabel('Magnitude [dB]');
 
 subplot(Nplot,1,2);
@@ -58,7 +57,9 @@ if isfield(data{k}.UserData,'cxy')
         h = semilogx(data{k}.frequency,data{k}.UserData.cxy); hold on;
     end
     ylabel('Coherence [-]');
+    xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
 else
+    xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
     subplot(2,1,1);
     if ischar(noise)
         for k = 1:N
@@ -71,6 +72,5 @@ else
     end
 end
 
-xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
 
 end
