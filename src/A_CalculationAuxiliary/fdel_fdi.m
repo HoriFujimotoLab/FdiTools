@@ -1,13 +1,21 @@
-function sysout = fdel_fdi(sys, fmin, fmax)
+function sysout = fdel_fdi(sys, fmin, fmax, vars)
 % FdiTools version of fdel
 % Wataru Ohnishi, The University of Tokyo, 2019
 %%%%
+
+if nargin < 4
+    if isfield(sys.UserData,'sCR') % multisine
+        vars = {'X','Y','FRFn','sX2','sY2','cXY','sCR'};
+    else % other excitation signal
+        vars = {'cxy'};
+    end
+end
 
 [~,kmin] = min(abs(sys.freq - fmin));
 [~,kmax] = min(abs(sys.freq - fmax));
 
 sysout = fdel(sys,sys.freq(kmin:kmax));
-sysout = fdel_fdi_UserData(sysout,{'X','Y','FRFn','sX2','sY2','cXY','sCR'}, kmin,kmax);
+sysout = fdel_fdi_UserData(sysout,vars, kmin,kmax);
 
 end
 

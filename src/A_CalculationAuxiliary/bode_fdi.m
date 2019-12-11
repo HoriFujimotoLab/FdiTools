@@ -5,16 +5,14 @@ if ~iscell(data)
 end
 N = length(data); % number of data
 
-Nplot = 2;
+Nplot = 3;
+cohFlag = true;
 for k = 1:N
-    if isfield(data{k}.UserData,'cxy'), Nplot = 3; end
+    if isfield(data{k}.UserData,'sCR'), Nplot = 2; cohFlag = false; end
 end
 
 if nargin < 2
-    noise = 'sCR';
-    for k = 1:N
-        if isfield(data{k}.UserData,'cxy'), noise = 'cxy'; end
-    end
+    if cohFlag, noise = 'cxy'; else, noise = 'FRFn'; end
 end
 
 if nargin < 3
@@ -51,7 +49,7 @@ for k = 1:N
 end
 ylabel('Phase [deg]');
 
-if isfield(data{k}.UserData,'cxy')
+if cohFlag
     subplot(Nplot,1,3);
     for k = 1:N
         h = semilogx(data{k}.frequency,data{k}.UserData.cxy); hold on;
@@ -69,6 +67,17 @@ else
         end
     else
         h = semilogx(noise(:,1),mag2db(abs(noise(:,2)))); hold on;
+    end
+    if ~cohFlag
+        if N == 1
+            legend('FRFs',noise);
+        else
+            strLeg = cell(N*2,1);
+            for k = 1:N
+                strLeg{k} = sprintf('FRFs%d',k); strLeg{k+N} = sprintf('FRFn%d',k); 
+            end
+            legend(strLeg);
+        end
     end
 end
 
