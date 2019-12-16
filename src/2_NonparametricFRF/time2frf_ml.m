@@ -173,7 +173,7 @@ if length(varargin) < 5 % structured i/o
         Pest.UserData.y = y;
     end
     
-    Pest = fdicohere(Pest);
+    if isfield(Pest.UserData,'x'), Pest = fdicohere(Pest); end
     varargout{1} = Pest;
 else % FdiTools classical input
     varargout{1} = Xs;

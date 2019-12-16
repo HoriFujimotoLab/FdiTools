@@ -5,10 +5,10 @@ if ~iscell(data)
 end
 N = length(data); % number of data
 
-Nplot = 3;
-cohFlag = true;
+Nplot = 2;
+cohFlag = false;
 for k = 1:N
-    if isfield(data{k}.UserData,'sCR'), Nplot = 2; cohFlag = false; end
+    if isfield(data{k}.UserData,'cxy'), Nplot = 3; cohFlag = true; end
 end
 
 if nargin < 2
@@ -58,7 +58,7 @@ if cohFlag
     xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
 else
     xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
-    subplot(2,1,1);
+    subplot(Nplot,1,1);
     if ischar(noise)
         for k = 1:N
             if isfield(data{k}.UserData,noise)
