@@ -22,10 +22,18 @@ for k = 2:N
     sysout = fcat_fdi_UserData(vars,sysout,temp,varargin{k});
 end
 
-if isfield(sysout.UserData,'ms') % multisine
-    sysout.UserData.ms = varargin{1}.UserData.ms;
-    for k = 2:N
-        sysout.UserData.ms = [sysout.UserData.ms;varargin{k}.UserData.ms;];
+if isfield(varargin{1}.UserData,'ms') % multisine
+    sysout.UserData.ms = cell(1,N);
+    for k = 1:N
+        sysout.UserData.ms{k} = varargin{k}.UserData.ms;
+    end
+end
+if isfield(varargin{1}.UserData,'x') % time domain data
+    sysout.UserData.x = cell(1,N);
+    sysout.UserData.y = cell(1,N);
+    for k = 1:N
+        sysout.UserData.x{k} = varargin{k}.UserData.x;
+        sysout.UserData.y{k} = varargin{k}.UserData.y;
     end
 end
 

@@ -4,9 +4,13 @@ function sysout = fdel_fdi(sys, fmin, fmax, vars)
 %%%%
 
 if nargin < 4
-    if isfield(sys.UserData,'sCR') % multisine
+    if isfield(sys.UserData,'sCR'), flag_ms = true; else, flag_ms = false; end
+    if isfield(sys.UserData,'cxy'), flag_ch = true; else flag_ch = false; end
+    if flag_ms && ~flag_ch
         vars = {'X','Y','FRFn','sX2','sY2','cXY','sCR'};
-    else % other excitation signal
+    elseif flag_ms && flag_ch
+        vars = {'X','Y','FRFn','sX2','sY2','cXY','sCR','cxy'};
+    else
         vars = {'cxy'};
     end
 end
