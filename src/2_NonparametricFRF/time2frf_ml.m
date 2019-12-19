@@ -113,7 +113,7 @@ for i=1:nrofi
         end
         FRFs(:,(i-1)*nrofo+o) = Ys(:,o)./Xs(:,i);
         sCR(:,(i-1)*nrofo+o) = ...
-            2*abs(FRFs(:,(i-1)*nrofo+o)).*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
+            abs(FRFs(:,(i-1)*nrofo+o)).^2.*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
             + sY2(:,o)./(abs(Ys(:,o))).^2 ...
             - 2*real(cXY(:,(i-1)*nrofo+o)./(conj(Xs(:,i)).*Ys(:,o))));
     end
@@ -173,7 +173,7 @@ if length(varargin) < 5 % structured i/o
         Pest.UserData.y = y;
     end
     
-    Pest = fdicohere(Pest);
+    if isfield(Pest.UserData,'x'), Pest = fdicohere(Pest); end
     varargout{1} = Pest;
 else % FdiTools classical input
     varargout{1} = Xs;
