@@ -110,9 +110,9 @@ freq = Pest.freq;
 bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.wls,SYS.nls,SYS.ls},[Pest.freq,Pest.UserData.FRFn(:,1)]);
 legend('TRUE','FRF','WLS','NLS','LS','FRFn');
 
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.ml,SYS.btls,SYS.gtls},[Pest.freq,Pest.UserData.sCR(:,1)]);
-legend('TRUE','FRF','MLE','BTLS','GTLS','sCR')
+bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.ml,SYS.btls,SYS.gtls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+legend('TRUE','FRF','MLE','BTLS','GTLS','sGhat')
 
 % best estimator
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.btls},[Pest.freq,Pest.UserData.sCR(:,1)]);
-legend('TRUE','FRF','BTLS','sCR')
+bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.btls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+legend('TRUE','FRF','BTLS','sGhat')

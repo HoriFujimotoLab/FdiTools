@@ -76,7 +76,7 @@ subplot(221), semilogx(freq,[dbm(squeeze(Pest.resp(1,1,:))),dbm(FRF.ml(:,1)),dbm
 hold on, semilogx(freq,dbm(FRF.gtls(:,1)),'k--')  % starting values
 hold on, semilogx(freq,dbm(Pest.UserData.sGhat(:,1)),'m--')       % uncertainty lowerbound
     ylabel('Amplitude [dB]')
-    legend('FRF','MLE','BTLS','GTLS','sCR')
+    legend('FRF','MLE','BTLS','GTLS','sGhat')
     xlim([10,300])
 subplot(223), semilogx(freq,[phs(squeeze(Pest.resp(1,1,:))),phs(FRF.ml(:,1)),phs(FRF.btls(:,1))])
 hold on, semilogx(freq,phs(FRF.gtls(:,1)),'k--')  % starting values
@@ -87,7 +87,7 @@ subplot(222), semilogx(freq,[dbm(squeeze(Pest.resp(2,1,:))),dbm(FRF.ml(:,2)),dbm
 hold on, semilogx(freq,dbm(FRF.gtls(:,2)),'k--')  % starting values
 hold on, semilogx(freq,dbm(Pest.UserData.sGhat(:,2)),'m--')       % uncertainty lowerbound
     ylabel('Amplitude [dB]')
-    legend('FRF','MLE','BTLS','GTLS','sCR')
+    legend('FRF','MLE','BTLS','GTLS','sGhat')
     xlim([10,300])
 subplot(224), semilogx(freq,[phs(squeeze(Pest.resp(2,1,:))),phs(FRF.ml(:,2)),phs(FRF.btls(:,2))])
 hold on, semilogx(freq,phs(FRF.gtls(:,2)),'k--')  % starting values
