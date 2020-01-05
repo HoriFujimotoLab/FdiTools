@@ -4,15 +4,13 @@ function sysout = fdel_fdi(sys, fmin, fmax, vars)
 %%%%
 
 if nargin < 4
-    if isfield(sys.UserData,'sCR'), flag_ms = true; else, flag_ms = false; end
-    if isfield(sys.UserData,'cxy'), flag_ch = true; else flag_ch = false; end
-    if flag_ms && ~flag_ch
-        vars = {'X','Y','FRFn','sX2','sY2','cXY','sCR'};
-    elseif flag_ms && flag_ch
-        vars = {'X','Y','FRFn','sX2','sY2','cXY','sCR','cxy'};
-    else
-        vars = {'cxy'};
-    end
+    name = fieldnames(sys.UserData);
+    idx_ms = strcmp(name,'ms'); % field 'ms' is not frequency dependent
+    idx_x = strcmp(name,'x'); % field 'x' is not frequency dependent
+    idx_y = strcmp(name,'y'); % field 'y' is not frequency dependent
+    idx_nofreq = or(idx_ms,idx_x);
+    idx_nofreq = or(idx_nofreq,idx_y);
+    vars = name(~idx_nofreq);
 end
 
 [~,kmin] = min(abs(sys.freq - fmin));

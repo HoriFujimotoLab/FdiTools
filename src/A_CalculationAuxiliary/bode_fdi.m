@@ -6,9 +6,16 @@ end
 N = length(data); % number of data
 
 Nplot = 2;
+
+msFlag = false;
 cohFlag = false;
 for k = 1:N
-    if isfield(data{k}.UserData,'cxy'), Nplot = 3; cohFlag = true; end
+    if isfield(data{k}.UserData,'sGhat'), msFlag = true; end
+end
+if ~msFlag
+    for k = 1:N
+        if isfield(data{k}.UserData,'cxy'), Nplot = 3; cohFlag = true; end
+    end
 end
 
 if nargin < 2
@@ -70,11 +77,11 @@ else
     end
     if ~cohFlag
         if N == 1
-            legend('FRFs',noise);
+            if ischar(noise), legend('FRFs',noise); end;
         else
             strLeg = cell(N*2,1);
             for k = 1:N
-                strLeg{k} = sprintf('FRFs%d',k); strLeg{k+N} = sprintf('FRFn%d',k); 
+                strLeg{k} = sprintf('FRFs%d',k); strLeg{k+N} = sprintf('FRFn%d',k);
             end
             legend(strLeg);
         end
