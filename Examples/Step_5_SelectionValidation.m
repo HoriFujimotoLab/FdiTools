@@ -77,7 +77,7 @@ pause
 [confid,var,tag] = chi2test(X,Y,freq,FRFs,sCR,SYS);
 figure
 subplot(211),loglog(freq,confid(:,:,1)), hold on, loglog(freq,var(:,1),'k')
-    legend(tag(:,1),'crlb')
+    legend([tag(:,1);'crlb'])
 subplot(212),loglog(freq,confid(:,:,2)), hold on, loglog(freq,var(:,2),'k')
-    legend(tag(:,2),'crlb') 
+    legend([tag(:,2);'crlb']) 
     
