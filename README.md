@@ -3,6 +3,9 @@ FdiTools
 
 Frequency Domain System Identification MATLAB Toolbox.
 
+Main reference:<br>
+R. Pintelon and J. Schoukens, System Identification: A Frequency Domain Approach, 2nd ed. Wiley-IEEE Press, 2012.
+
 # Overview
 ## ExcitationDesign
 * Multi sine
