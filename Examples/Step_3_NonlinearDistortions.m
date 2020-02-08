@@ -9,6 +9,20 @@
 clear all; close all; clc;
 load('private/MultisineTypeB.mat');     % random odd-odd multisine experiment
 
+% reproduce input
+% harm.fs = fs;
+% harm.df = df;
+% harm.fl = fl;
+% harm.fh = fh;
+% harm.fr = fr;
+% Hampl = repmat(tf(1),[1,1]); % flat spectrum
+% options.itp = itp;
+% options.ctp = ctp;
+% options.dtp = stp;
+% options.gtp = 'l';      % grid type: l=linear/q=quasi-logarithmic
+% ms = multisine(harm, Hampl, options);
+
+
 % Time treatment: remove transients/offsets/trends
 trans = 1;                      % number of transient periods
 trend = 0;                      % period trend removal flag
