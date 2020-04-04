@@ -12,7 +12,7 @@ y(1:n,1) = An(2:n+1);
 index = n+1;
 for i=1:nrofh
    yy=Bn(i,n+1-M_mh(i):n+1-M_ml(i));
-   y(index:index + M_mh(i)-M_ml(i))=yy;
+   y(index:index + M_mh(i)-M_ml(i),1)=yy;
    index = index + M_mh(i)-M_ml(i) + 1;
 end
 
