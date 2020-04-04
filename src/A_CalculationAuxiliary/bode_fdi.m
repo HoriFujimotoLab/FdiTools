@@ -6,33 +6,37 @@ end
 N = length(data); % number of data
 
 Nplot = 2;
-for k = 1:N
-    if isfield(data{k}.UserData,'cxy'), Nplot = 3; end
-end
 
-if nargin < 2
-    noise = 'sCR';
+msFlag = false;
+cohFlag = false;
+for k = 1:N
+    if isfield(data{k}.UserData,'sGhat'), msFlag = true; end
+end
+if ~msFlag
     for k = 1:N
-        if isfield(data{k}.UserData,'cxy'), noise = 'cxy'; end
+        if isfield(data{k}.UserData,'cxy'), Nplot = 3; cohFlag = true; end
     end
 end
 
-if nargin < 3
-    option.pmin = -180;
-    option.pmax = 180;
+if nargin < 2
+    if cohFlag, noise = 'cxy'; else, noise = 'FRFn'; end
 end
 
+if nargin < 3
+    option = [];
+end
+if ~isfield(option,'pmin'), option.pmin = -180; option.pmax = 180; end
 
 freq = logspace(0,3,400);
 for k = 1:N
     try freq = data{k}.freq; catch, data{k} = frd(data{k},freq,'FrequencyUnit','Hz'); end
 end
-
 hfig = figure;
 subplot(Nplot,1,1);
 for k = 1:N
     h = semilogx(data{k}.frequency,mag2db(abs(squeeze(data{k}.ResponseData)))); hold on;
 end
+if isfield(option,'title'), title(option.title); end
 ylabel('Magnitude [dB]');
 
 subplot(Nplot,1,2);
@@ -52,14 +56,16 @@ for k = 1:N
 end
 ylabel('Phase [deg]');
 
-if isfield(data{k}.UserData,'cxy')
+if cohFlag
     subplot(Nplot,1,3);
     for k = 1:N
         h = semilogx(data{k}.frequency,data{k}.UserData.cxy); hold on;
     end
     ylabel('Coherence [-]');
+    xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
 else
-    subplot(2,1,1);
+    xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
+    subplot(Nplot,1,1);
     if ischar(noise)
         for k = 1:N
             if isfield(data{k}.UserData,noise)
@@ -69,8 +75,18 @@ else
     else
         h = semilogx(noise(:,1),mag2db(abs(noise(:,2)))); hold on;
     end
+    if ~cohFlag
+        if N == 1
+            if ischar(noise), legend('FRFs',noise); end;
+        else
+            strLeg = cell(N*2,1);
+            for k = 1:N
+                strLeg{k} = sprintf('FRFs%d',k); strLeg{k+N} = sprintf('FRFn%d',k);
+            end
+            legend(strLeg);
+        end
+    end
 end
 
-xlabel(['Frequency [',data{1}.FrequencyUnit,']']);
 
 end

@@ -35,12 +35,12 @@ flagTime = true;
 Pest = time2frf_ml(x,y,ms,flagTime);
 
 title('Motor-side');
-bode_fdi({Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
-legend('FRF','FRFn');
+bode_fdi({Pest(1,1)},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+legend('FRF','sGhat');
 
 title('Load-side');
-bode_fdi({Pest(2,1)},[Pest.freq,Pest.UserData.FRFn(:,2)]);
-legend('FRF','FRFn');
+bode_fdi({Pest(2,1)},[Pest.freq,Pest.UserData.sGhat(:,2)]);
+legend('FRF','sGhat');
 
 % figure
 % subplot(221), semilogx(Pest.freq,dbm(squeeze(Pest.resp(1,1,:))),Pest.freq,dbm(Pest.UserData.FRFn(:,1)),'r');

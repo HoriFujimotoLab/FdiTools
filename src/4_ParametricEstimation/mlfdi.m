@@ -34,7 +34,8 @@ if length(varargin) < 9 % structured input
     sX2 = Pest.UserData.sX2;
     sY2 = Pest.UserData.sY2;
     cXY = Pest.UserData.cXY;
-    fs = Pest.UserData.ms(1).harm.fs;
+    if iscell(Pest.UserData.ms), fs = Pest.UserData.ms{1}.harm.fs;
+    else fs = Pest.UserData.ms.harm.fs; end
 else % FdiTools classical input
     X = varargin{1};
     Y = varargin{2};

@@ -83,6 +83,7 @@ Ys = zeros(nroff,nrofo); sY2 = zeros(nroff,nrofo);
 cXY = zeros(nroff,nrofh);
 FRFs = zeros(nroff,nrofh);
 sCR = zeros(nroff,nrofh);
+sGhat = zeros(nroff,nrofh);
 for i=1:nrofi
     for p=1:nrofp
         Ip = fft(x(1+(p-1)*nrofs:p*nrofs,i));       % fft of 1x period
@@ -113,9 +114,13 @@ for i=1:nrofi
         end
         FRFs(:,(i-1)*nrofo+o) = Ys(:,o)./Xs(:,i);
         sCR(:,(i-1)*nrofo+o) = ...
-            2*abs(FRFs(:,(i-1)*nrofo+o)).*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
+            sqrt(abs(FRFs(:,(i-1)*nrofo+o)).^2.*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
             + sY2(:,o)./(abs(Ys(:,o))).^2 ...
-            - 2*real(cXY(:,(i-1)*nrofo+o)./(conj(Xs(:,i)).*Ys(:,o))));
+            - 2*real(cXY(:,(i-1)*nrofo+o)./(conj(Xs(:,i)).*Ys(:,o)))));
+        sGhat(:,(i-1)*nrofo+o) = ...
+        sqrt(abs(FRFs(:,(i-1)*nrofo+o)).^2/nrofp.*(sX2(:,i)./(abs(Xs(:,i))).^2 ...
+            + sY2(:,o)./(abs(Ys(:,o))).^2 ...
+            - 2*real(cXY(:,(i-1)*nrofo+o)./(conj(Xs(:,i)).*Ys(:,o)))));
     end
 end
 
@@ -147,6 +152,7 @@ if length(varargin) < 5 % structured i/o
         excond = ms.ex-(ms.ex(1)-1); freq = ms.freq(ms.ex);
         Xs = Xs(excond); Ys = Ys(excond,:); FRFs = FRFs(excond,:); FRFn = FRFn(excond,:);
         sX2 = sX2(excond,:); sY2 = sY2(excond,:); cXY = cXY(excond,:); sCR = sCR(excond,:);
+        sGhat = sGhat(excond,:);
     end
     
     Pest = frd(FRFs(:,1),freq,'FrequencyUnit','Hz');
@@ -166,6 +172,7 @@ if length(varargin) < 5 % structured i/o
     Pest.UserData.sY2 = sY2;
     Pest.UserData.cXY = cXY;
     Pest.UserData.sCR = sCR;
+    Pest.UserData.sGhat = sGhat;
     Pest.UserData.ms = ms;
     
     if flagTime % save Time domain data
@@ -173,6 +180,7 @@ if length(varargin) < 5 % structured i/o
         Pest.UserData.y = y;
     end
     
+    if isfield(Pest.UserData,'x'), Pest = fdicohere(Pest); end
     varargout{1} = Pest;
 else % FdiTools classical input
     varargout{1} = Xs;
