@@ -136,7 +136,12 @@ while (iter<=max_iter)&&(err>max_err)
         MtM=[MytMy MytMx ; MytMx' MxtMx];
         cols = (1:n+1+M_mh(h)-M_ml(h)+1);
         rows = (h-1)*(nrofp+1)+1:(h-1)*(nrofp+1)+(n+1+M_mh(h)-M_ml(h)+1);
-        C(rows,cols) = chol(MtM);
+        try chol(A)
+            C(rows,cols) = chol(MtM);
+        catch 
+            C(rows,cols) = [chol(MytMy) MytMx ; MytMx' MxtMx];
+            disp('Matrix is not positive definite')
+        end   
     end
 
     % Calculation of generalized right singular vector (Xg)
