@@ -58,13 +58,13 @@ nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
 nrofp = 10; % number of period of periodic excitation
 input = repmat(input,[nrofp,1]);
-inputnoize = 0.01; % amp of input noise 
-input = input + inputnoize*randn(size(input));
+input_noise_amp = 0.01; % amp of input noise 
+input_noize = input + input_noise_amp*randn(size(input));
 Ts = 1/ms.harm.fs;
 t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input,t);
-outputnoize = 0.001; % amp of output noise 
-output = output + outputnoize*randn(size(output));
+output = lsim(mdl.Pv(1,1),input_noize,t);
+output_noise_amp = 0.001; % amp of output noise 
+output_noize = output + output_noise_amp*randn(size(output));
 
 %% STEP 2: NonparametricFRF
 % remove transient periods, offsets and trends
@@ -73,7 +73,7 @@ trend = 0;                      % period trend removal flag
 r0 = (1:ms.nrofs);                 % time visualization range
 rn = (ms.nrofs*2+1:(2+1)*ms.nrofs);   % data visualization range
 [x,time] = pretreat(input,nrofs,harm.fs,trans,trend);
-[y,time] = pretreat(output,nrofs,harm.fs,trans,trend);
+[y,time] = pretreat(output_noize,nrofs,harm.fs,trans,trend);
 
 figure
 subplot(211), plot(time(r0),x(rn,:))
@@ -131,15 +131,15 @@ end
 load('private/20160829_ident'); % load benchmark model
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
-nrofp = 50; % number of period of periodic excitation
+nrofp = 10; % number of period of periodic excitation
 input = repmat(input,[nrofp,1]);
-inputnoize = 0.01; % amp of input noise 
-input = input + inputnoize*randn(size(input));
+input_noise_amp = 0.01; % amp of input noise 
+input_noize = input + input_noise_amp*randn(size(input));
 Ts = 1/ms.harm.fs;
 t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input,t);
-outputnoize = 0.001; % amp of output noise 
-output = output + outputnoize*randn(size(output));
+output = lsim(mdl.Pv(1,1),input_noize,t);
+output_noise_amp = 0.001; % amp of output noise 
+output_noize = output + output_noise_amp*randn(size(output));
 
 %% STEP 2: NonparametricFRF
 % remove transient periods, offsets and trends

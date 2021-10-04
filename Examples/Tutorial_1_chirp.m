@@ -24,34 +24,34 @@ subplot(211); plot(ss.time,ss.x);
     xlabel('time [s]'); ylabel('amplitude [-]');
 subplot(212); semilogx(ss.freq,dbm(ss.X));
     title('Swept-sine: freq domain'); 
-    xlabel('freq [Hz]'); ylabel('amplitude [dB]');
+    xlabel('Frequency [Hz]'); ylabel('amplitude [dB]');
 
 %% EXPERIMENT
 nrofs = length(ss.x); % number of sample per period
 input = ss.x*1.6726;
-nrofp = 5; % number of period of periodic excitation
+nrofp = 10; % number of period of periodic excitation
 input = repmat(input,[nrofp,1]);
 load('private/20160829_ident'); % load benchmark model
-inputnoize = 0;%0.01; % amp of input noise 
-input = input + inputnoize*randn(size(input));
+input_noise_amp = 0.01; % amp of input noise 
+input_noize = input + input_noise_amp*randn(size(input));
 Ts = 1/harm.fs;
 t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input,t);
-outputnoize = 0.001; % amp of output noise 
-output = output + outputnoize*randn(size(output));
+output = lsim(mdl.Pv(1,1),input_noize,t);
+output_noise_amp = 0.001; % amp of output noise 
+output_noize = output + output_noise_amp*randn(size(output));
 
 %% STEP 2: NonparametricFRF
 % remove transient periods, offsets and trends
 trans = 1;                      % number of transient periods
 trend = 0;                      % period trend removal flag
 [input_pretreat,time] = pretreat(input,nrofs,harm.fs,trans,trend);
-[output_pretreat,time] = pretreat(output,nrofs,harm.fs,trans,trend);
+[output_pretreat,time] = pretreat(output_noize,nrofs,harm.fs,trans,trend);
 
-% input = detrend(input,0); output = detrend(output,0);
 [txy,freq] = tfestimate(input_pretreat,output_pretreat,rectwin(harm.df*harm.fs),0,harm.df*harm.fs,harm.fs);
 [cxy,freq] = mscohere(input_pretreat,output_pretreat,rectwin(harm.df*harm.fs),0,harm.df*harm.fs,harm.fs);
 Pfrd = frd(txy,freq,'FrequencyUnit','Hz');
-figure; semilogx(freq,cxy); title('coherence');
+figure; semilogx(freq,cxy); 
+xlabel('Frequency [Hz]'); ylabel('Coherence [-]');
 
 % require system identification toolbox
 Pfrd2 = fselect(Pfrd,harm.df,harm.fh);

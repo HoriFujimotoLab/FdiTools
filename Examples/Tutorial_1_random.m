@@ -20,15 +20,18 @@ inputnoize = 0.01; % amp of input noise
 input = input + inputnoize*randn(size(input));
 Ts = 1/fs;
 t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input,t);
-outputnoize = 0.001; % amp of output noise 
-output = output + outputnoize*randn(size(output));
+input_noise_amp = 0.01; % amp of input noise 
+input_noize = input + input_noise_amp*randn(size(input));
+output = lsim(mdl.Pv(1,1),input_noize,t);
+output_noise_amp = 0.001; % amp of output noise 
+output_noize = output + output_noise_amp*randn(size(output));
+
 
 %% STEP 2: NonparametricFRF
 % remove transient periods, offsets and trends
-input = detrend(input,0);output = detrend(output,0);
-[txy,freq] = tfestimate(input,output,[],[],[],fs);
-[cxy,freq] = mscohere(input,output,[],[],[],fs);
+input = detrend(input,0);output_noize = detrend(output_noize,0);
+[txy,freq] = tfestimate(input,output_noize,[],[],[],fs);
+[cxy,freq] = mscohere(input,output_noize,[],[],[],fs);
 Pfrd = frd(txy,freq,'FrequencyUnit','Hz');
 figure; semilogx(freq,cxy); title('coherence');
 
@@ -37,5 +40,7 @@ opt = tfestOptions('WeightingFilter',cxy.*freq);
 Pest = tfest(Pfrd,7,4);
 % data = iddata(output,input,1/fs); 
 % Pest = tfest(data,7,4); % require system identification toolbox
-figure; bode(Pfrd,Pest,mdl.Pv(1,1)); xlim([1,1000]); % require system identification toolbox
+bop = bodeoptions('cstprefs');
+bop.PhaseWrapping = 'on';
+figure; bode(Pfrd,Pest,mdl.Pv(1,1),bop); xlim([1,1000]); % require system identification toolbox
 legend('estimated FRF','fitted by tfest','TRUE');
