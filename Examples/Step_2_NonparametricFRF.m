@@ -14,19 +14,36 @@ load('private/MultisineTypeA.mat');     % schoeder multisine experiment
 % remove transient periods, offsets and trends
 trans = 1;                      % number of transient periods
 trend = 0;                      % period trend removal flag
-r0 = (1:ms.nrofs);                 % time visualization range
-rn = (ms.nrofs*2+1:(2+1)*ms.nrofs);   % data visualization range
 input = [iq_adx];               % input data to motor bench
 output = [theta_mx,-theta_my];  % output data of motor bench
 [x,time] = pretreat(input,ms.nrofs,ms.harm.fs,trans,trend);
 [y,time] = pretreat(output,ms.nrofs,ms.harm.fs,trans,trend);
 
-figure
-subplot(211), plot(time(r0),x(rn,:))
-    title('input data'), legend('motor torque'), ylim([-20,20])
-subplot(212), plot(time(r0),y(rn,:))
-    title('output data'), legend('motor angle','load angle')
-    xlabel('time [s]')
+nrofp = length(input)/ms.nrofs - trans; % number of period after transient removal
+
+figure;
+subplot(311)
+for k = 1:nrofp
+    h = plot(time(1:ms.nrofs),x(ms.nrofs*(k-1)+1:k*ms.nrofs)); hold on;
+    h.DisplayName = sprintf('period%d',k+trans);
+end
+ylabel('input current [A]');
+title(sprintf('%d periods (%d transient removal)',nrofp,trans));
+% legend;
+subplot(312)
+for k = 1:nrofp
+    h = plot(time(1:ms.nrofs),y(ms.nrofs*(k-1)+1:k*ms.nrofs,1)); hold on;
+    h.DisplayName = sprintf('period%d',k+trans);
+end
+ylabel('motor angle [rad]');
+subplot(313)
+for k = 1:nrofp
+    h = plot(time(1:ms.nrofs),y(ms.nrofs*(k-1)+1:k*ms.nrofs,2)); hold on;
+    h.DisplayName = sprintf('period%d',k+trans);
+end
+ylabel('load angle [rad]');
+xlabel('time [s]');
+
 pause
 
 %% STEP 2: NON-PARAMETRIC ESTIMATION
