@@ -32,7 +32,7 @@ for k=1:nrofc
     end
     if trend > 0                        % Trend Removal
         for m=1:nrofp
-            D(:,m) = detrend(D(:,m));
+            D(:,m) = detrend(D(:,m),0); % remove average value
         end
     end
     y(:,k) = D(:);
