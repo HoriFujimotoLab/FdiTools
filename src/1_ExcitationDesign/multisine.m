@@ -31,7 +31,9 @@ nl = ceil(harm.fl/harm.df)+1;           % Lowest frequency number
 nh = round(harm.fh/harm.df)+1;          % Highest frequency number
 nrofs = ceil(harm.fs/harm.df);          % Number of time domain samples
 if nrofi > 1, options.itp = 'r'; end    % MIMO experiments need r-phase
-if mod(nrofi,2)~=0, options.otp = 'o';  % Orthogonal multsines (general)
+
+% if mod(nrofi,2)~=0, options.otp = 'o';  % don't include 6,12, etc which are not the powers of 2.
+if mod(log2(nrofi),1)~=0, options.otp = 'o';  % Orthogonal multsines (general) 
 else                options.otp = 'e';  % Hadamard multisines (better cf)
 end
 
