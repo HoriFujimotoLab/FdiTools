@@ -6,7 +6,10 @@ function X = randph(X)
 % Author   : Thomas Beauduin, KULeuven, 2014
 %%%%%
 ampl = abs(X);
-rand('seed',sum(100*clock)); 
+%rand('seed',sum(100*clock)); 
+
+%change random seed to default: Mersenne Twister seed 0
+rng('default'); 
 phase = (2*rand(size(ampl))-1)*pi; 
 X = ampl.*exp(1i*phase); 
  
