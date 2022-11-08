@@ -69,47 +69,68 @@ else % FdiTools classical input
     df = varargin{6};
 end
 
+%n_exp = number of experiments
+[~,nrofi,n_exp] = size(x);
+[~,nrofo,~] = size(y);
 
-[~,nrofi] = size(x);                                % number of inputs
-[~,nrofo] = size(y);                                % number of outputs
+%[~,nrofi] = size(x);                               % number of inputs
+%[~,nrofo] = size(y);                               % number of outputs
 nrofh = nrofi*nrofo;                                % number of tf's (Hxy)
-nrofs = fs/df;                                      % samples per period
+%nrofs = fs/df;                                     % samples per period
+nrofs = round(fs/df);                               % samples per period
 nl = ceil(fl/df); nh = floor(fh/df);                % low & high freq
 freq = double((nl:1:nh)'/(nrofs/fs));               % full freq lines
 nroff = length(freq);                               % number of freq lines
 nrofp = double(floor(length(x)/nrofs));             % number of period
 
 % Calculation of signal fft data
-INP = zeros(nroff,nrofp,nrofi);
-OUT = zeros(nroff,nrofp,nrofo);
-Xs = zeros(nroff,nrofi); sX2 = zeros(nroff,nrofi);
-Ys = zeros(nroff,nrofo); sY2 = zeros(nroff,nrofo);
+INP = zeros(nroff,nrofp,nrofi,n_exp);
+OUT = zeros(nroff,nrofp,nrofo,n_exp);
+Xs = zeros(nroff,nrofi,n_exp); sX2 = zeros(nroff,nrofi,n_exp);
+Ys = zeros(nroff,nrofo,n_exp); sY2 = zeros(nroff,nrofo,n_exp);
 cXY = zeros(nroff,nrofh);
 FRFs = zeros(nroff,nrofh);
+FRM = zeros(nrofo,nrofi,nroff);
 sCR = zeros(nroff,nrofh);
 sGhat = zeros(nroff,nrofh);
-for i=1:nrofi
-    for p=1:nrofp
-        Ip = fft(x(1+(p-1)*nrofs:p*nrofs,i));       % fft of 1x period
-        INP(:,p,i) = Ip(nl+1:nh+1);                 % fft dc-term removal
-        %       for f=1:nroff
-        %           INP(f,p,i)=INP(f,p,i)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
-        %       end
+for n_e =1:n_exp    
+    for i=1:nrofi
+        for p=1:nrofp
+            Ip = fft(x(1+(p-1)*nrofs:p*nrofs,i,n_e));       % fft of 1x period
+            INP(:,p,i,n_e) = Ip(nl+1:nh+1);                 % fft dc-term removal
+            %       for f=1:nroff
+            %           INP(f,p,i)=INP(f,p,i)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
+            %       end
+        end
+        Xs(:,i,n_e) = mean(INP(:,:,i,n_e),2);
+        sX2(:,i,n_e)=((std(INP(:,:,i,n_e),0,2)).^2)/2/nrofp;    % measurement variances
     end
-    Xs(:,i) = mean(INP(:,:,i),2);
-    sX2(:,i)=((std(INP(:,:,i),0,2)).^2)/2/nrofp;    % measurement variances
 end
-for o=1:nrofo
-    for p=1:nrofp
-        Op = fft(y(1+(p-1)*nrofs:p*nrofs,o));
-        OUT(:,p,o) = Op(nl+1:nh+1);
-        %      for f=1:nroff
-        %          INP(f,p,o)=INP(f,p,o)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
-        %      end
+
+for n_e=1:n_exp
+    for o=1:nrofo
+        for p=1:nrofp
+            Op = fft(y(1+(p-1)*nrofs:p*nrofs,o,n_e));
+            OUT(:,p,o,n_e) = Op(nl+1:nh+1);
+            %      for f=1:nroff
+            %          INP(f,p,o)=INP(f,p,o)*( 1i*2*pi*freq(f)/(1-exp(1i*2*pi*freq(f)/fs)) );
+            %      end
+        end
+        Ys(:,o,n_e) = mean(OUT(:,:,o,n_e),2);
+        sY2(:,o,n_e)=((std(OUT(:,:,o,n_e),0,2)).^2)/2/nrofp;
     end
-    Ys(:,o) = mean(OUT(:,:,o),2);
-    sY2(:,o)=((std(OUT(:,:,o),0,2)).^2)/2/nrofp;
 end
+%from freq,ports,exps, to ports,exps,freq
+Xs = permute(Xs,[2 3 1]);
+Ys = permute(Ys,[2 3 1]);
+
+for f = 1:nroff
+    FRM(:,:,f) = Ys(:,:,f)/Xs(:,:,f);
+end
+Pest = frd(FRM,freq,'FrequencyUnit','Hz');
+
+FRFn = zeros(nroff,nrofh);
+%{    
 for i=1:nrofi
     for o=1:nrofo
         for f=1:nroff
@@ -149,9 +170,10 @@ for i=1:nrofi
         FRFn(:,(i-1)*nrofo+o) = Yn(:,o)./Xs(:,i);   % noise frf calc
     end
 end
-
+%}
 if length(varargin) < 5 % structured i/o
     % delete data for qlog excitation
+    %{
     if any(strcmp(ms.options.gtp,{'q','qlog'}))
         excond = ms.ex-(ms.ex(1)-1); freq = ms.freq(ms.ex);
         Xs = Xs(excond); Ys = Ys(excond,:); FRFs = FRFs(excond,:); FRFn = FRFn(excond,:);
@@ -174,16 +196,22 @@ if length(varargin) < 5 % structured i/o
             end
         end
                 
-        %error('MISO or MIMO is not implemented yet!');
+        
     end
+%}
     Pest.UserData.X = Xs;
     Pest.UserData.Y = Ys;
-    Pest.UserData.FRFn = FRFn;
+    
     Pest.UserData.sX2 = sX2;
     Pest.UserData.sY2 = sY2;
+    
+    %{
+    Pest.UserData.FRFn = FRFn;
     Pest.UserData.cXY = cXY;
     Pest.UserData.sCR = sCR;
     Pest.UserData.sGhat = sGhat;
+    %}
+    
     Pest.UserData.ms = ms;
     
     if flagTime % save Time domain data
@@ -193,16 +221,21 @@ if length(varargin) < 5 % structured i/o
     
     if isfield(Pest.UserData,'x'), Pest = fdicohere(Pest); end
     varargout{1} = Pest;
-else % FdiTools classical input
+else
+        % FdiTools classical input
     varargout{1} = Xs;
     varargout{2} = Ys;
-    varargout{3} = FRFs;
+    %varargout{3} = FRFs;
+    varargout{3} = FRM;
     varargout{4} = FRFn;
     varargout{5} = freq;
     varargout{6} = sX2;
     varargout{7} = sY2;
+end
+    %{
     varargout{8} = cXY;
     varargout{9} = sCR;
-end
+    %}   
+
 
 end

@@ -51,7 +51,7 @@ end
 
 % Calculation of Optimized Spectrum
 R = zeros(nrofi,nrofi,nh);
-for i=1:nrofi
+for i=1:nrofi %iは入力数
     w = 1i*2*pi*harm.df*(0:1:nrofs/2-1)';
     X = zeros(nh,1); w = w(1:nh);
     S = whos('Hampl');
@@ -73,12 +73,14 @@ for i=1:nrofi
         Mag = abs(polyval(Bn,w)./polyval(An,w));
     end
     X(ex) = Mag(ex);
-    for j=1:nrofi
+    for j=1:nrofi %jは実験回数
         switch options.itp
-            case {'r','random'},  X = randph(X);
+            case {'r','random'},  X = randph(X,i-1);%入力ごとに違う
+            %case {'r','random'},  X = randph(X,j-1);%実験ごとに違う
             case {'s','schroed'}, X = schroed(X);
         end
         switch options.ctp
+            %R.*Tより、i,jはp,qつまりiは入力, jはexp回数
             case {'n','non-comp'},   R(i,j,:) = X;
             case {'c','compressed'}, R(i,j,:) = msinl2p(X,nrofs,options.itp);
         end
