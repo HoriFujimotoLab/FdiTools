@@ -49,6 +49,7 @@ end
 
 %% EXPERIMENT
 load('private/20160829_ident'); % load benchmark model
+P0 = mdl.Pv(1,1);
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
 nrofp = 5; % number of period of periodic excitation
@@ -57,7 +58,7 @@ input_noise_amp = 0.01; % amp of input noise
 input_noize = input + input_noise_amp*randn(size(input));
 Ts = 1/ms.harm.fs;
 t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input_noize,t);
+output = lsim(P0,input_noize,t);
 output_noise_amp = 0.001; % amp of output noise 
 output_noize = output + output_noise_amp*randn(size(output));
 
@@ -78,7 +79,7 @@ subplot(212), plot(time(r0),y(rn,:))
     xlabel('time [s]')
 
 Pest = time2frf_ml(x,y,ms);
-bode_fdi({mdl.Pv(1,1),Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
+bode_fdi({P0,Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
 legend('true','estimated frd','noise');
 
 %% STEP 4: PARAMETRIC ESTIMATION
@@ -107,12 +108,12 @@ freq = Pest.freq;
     FRF.btls = hfrf(SYS.btls,freq);
     FRF.gtls = hfrf(SYS.gtls,freq);
 
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.wls,SYS.nls,SYS.ls},[Pest.freq,Pest.UserData.FRFn(:,1)]);
+bode_fdi({P0,Pest(1,1),SYS.wls,SYS.nls,SYS.ls},[Pest.freq,Pest.UserData.FRFn(:,1)]);
 legend('TRUE','FRF','WLS','NLS','LS','FRFn');
 
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.ml,SYS.btls,SYS.gtls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+bode_fdi({P0,Pest(1,1),SYS.ml,SYS.btls,SYS.gtls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
 legend('TRUE','FRF','MLE','BTLS','GTLS','sGhat')
 
 % best estimator
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.btls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+bode_fdi({P0,Pest(1,1),SYS.btls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
 legend('TRUE','FRF','BTLS','sGhat')

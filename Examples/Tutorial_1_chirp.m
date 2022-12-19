@@ -32,11 +32,12 @@ input = ss.x*1.6726;
 nrofp = 10; % number of period of periodic excitation
 input = repmat(input,[nrofp,1]);
 load('private/20160829_ident'); % load benchmark model
+P0 = mdl.Pv(1,1);
 input_noise_amp = 0.01; % amp of input noise
 input_noize = input + input_noise_amp*randn(size(input));
 Ts = 1/harm.fs;
 t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input_noize,t);
+output = lsim(P0,input_noize,t);
 output_noise_amp = 0.001; % amp of output noise
 output_noize = output + output_noise_amp*randn(size(output));
 
@@ -54,12 +55,15 @@ figure; semilogx(freq,cxy);
 xlabel('Frequency [Hz]'); ylabel('Coherence [-]');
 
 % require system identification toolbox
+bop = bodeoptions('cstprefs');
+bop.PhaseWrapping = 'on';
 if exist('tfestOptions')
     Pfrd2 = fselect(Pfrd,harm.df,harm.fh);
     opt = tfestOptions('WeightingFilter',cxy.*freq);
     Pest = tfest(Pfrd2,7,4);
-    bop = bodeoptions('cstprefs');
-    bop.PhaseWrapping = 'on';
-    figure; bode(Pfrd,Pest,mdl.Pv(1,1),bop); xlim([1,1000]);
+    figure; bode(Pfrd,Pest,P0,bop); xlim([1,1000]);
     legend('estimated FRF','fitted by tfest','TRUE');
+else
+    figure; bode(Pfrd,P0,bop); xlim([1,1000]);
+    legend('estimated FRF','true FRF');
 end

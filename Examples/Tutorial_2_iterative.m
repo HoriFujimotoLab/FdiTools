@@ -8,8 +8,14 @@
 clear all; close all; clc;
 rng('default');
 
-% first execute wideband excitation
-%% STEP 1: ExcitationDesign
+% Experiment settings
+load('private/20160829_ident'); % load benchmark model
+P0 = mdl.Pv(1,1);
+inputnoize = 0.01; % amp of input noise
+outputnoize = 0.003; % amp of output noise
+
+%% First experiment with wideband excitation (quasi log)
+% STEP 1: ExcitationDesign
 harm.fs = 10000;         % sampling frequency
 harm.df = 1;            % frequency resolution
 harm.fl = 1;            % lowest frequency
@@ -46,24 +52,17 @@ for ii = 1:nrofi
     end
 end
 
-% header file output
-% path = multisine2hdr(ms,'data/multisine.h');
-
-%% EXPERIMENT
-load('private/20160829_ident'); % load benchmark model
+% EXPERIMENT
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:))/(abs(max(squeeze(ms.x(1,1,:)))));
 nrofp = 5; % number of period of periodic excitation
 input = repmat(input,[nrofp,1]);
-inputnoize = 0.01; % amp of input noise
 input = input + inputnoize*randn(size(input));
-Ts = 1/ms.harm.fs;
-t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input,t);
-outputnoize = 0.005; % amp of output noise
+Ts = 1/ms.harm.fs; t = 0:Ts:Ts*(length(input)-1);
+output = lsim(P0,input,t); % EXPERIMENT
 output = output + outputnoize*randn(size(output));
 
-%% STEP 2: NonparametricFRF
+% STEP 2: NonparametricFRF
 % remove transient periods, offsets and trends
 trans = 2;                      % number of transient periods
 trend = 0;                      % period trend removal flag
@@ -72,17 +71,9 @@ rn = (ms.nrofs*2+1:(2+1)*ms.nrofs);   % data visualization range
 [x,time] = pretreat(input,nrofs,harm.fs,trans,trend);
 [y,time] = pretreat(output,nrofs,harm.fs,trans,trend);
 
-% figure
-% subplot(211), plot(time(r0),x(rn,:))
-% title('input data'), legend('input force'), ylim([-2,2])
-% subplot(212), plot(time(r0),y(rn,:))
-% title('output data'), legend('stage position')
-% xlabel('time [s]')
-% 
 Pest = time2frf_ml(x,y,ms);
-% bode_fdi({mdl.Pv(1,1),Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
-bode_fdi({mdl.Pv(1,1),Pest});
-legend('true','estimated frd','noise');
+bode_fdi({P0,Pest});
+legend('true','estimated frd','sGhat');
 
 disp('----------------------------------------')
 disp('First experiment with wideband excitation')
@@ -92,11 +83,14 @@ Pest_qlog = Pest;
 Pest_qlog_del = fdel_fdi(Pest_qlog,100,1000);
 
 pause
-%% STEP 1: ExcitationDesign
+
+
+%% Second experiment via inverse S/N ratio
+% STEP 1: ExcitationDesign
 harm.fs = 10000;         % sampling frequency
 harm.df = 1;            % frequency resolution
-harm.fl = 1;%101;            % lowest frequency
-harm.fh = 1000;%296;          % highest frequency
+harm.fl = 101;            % lowest frequency
+harm.fh = 296;;          % highest frequency
 harm.fr = 1.02;         % frequency log ratio
 % Design Options:
 options.itp = 'r';      % init phase type:  s=schroeder/r=random
@@ -129,24 +123,17 @@ for ii = 1:nrofi
     end
 end
 
-% header file output
-% path = multisine2hdr(ms,'data/multisine.h');
-
-%% EXPERIMENT
-load('private/20160829_ident'); % load benchmark model
+% EXPERIMENT
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
-nrofp = 10; % number of period of periodic excitation
+nrofp = 20; % number of period of periodic excitation
 input = repmat(input,[nrofp,1]);
-inputnoize = 0.01; % amp of input noise 
 input = input + inputnoize*randn(size(input));
-Ts = 1/ms.harm.fs;
-t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input,t);
-outputnoize = 0.001; % amp of output noise 
+Ts = 1/ms.harm.fs; t = 0:Ts:Ts*(length(input)-1);
+output = lsim(P0,input,t); % EXPERIMENT
 output = output + outputnoize*randn(size(output));
 
-%% STEP 2: NonparametricFRF
+% STEP 2: NonparametricFRF
 % remove transient periods, offsets and trends
 trans = 2;                      % number of transient periods
 trend = 0;                      % period trend removal flag
@@ -163,7 +150,7 @@ subplot(212), plot(time(r0),y(rn,:))
     xlabel('time [s]')
 
 Pest = time2frf_ml(x,y,ms);
-bode_fdi({mdl.Pv(1,1),Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
+bode_fdi({P0,Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
 legend('true','estimated frd','noise');
 Pest_lin_100_300 = Pest;
 
@@ -172,7 +159,9 @@ disp('Second experiment via inverse S/N ratio')
 disp('----------------------------------------')
 
 pause
-%% STEP 1: ExcitationDesign
+
+%% Third experiment around high-frequency range
+% STEP 1: ExcitationDesign
 harm.fs = 10000;         % sampling frequency
 harm.df = 1;            % frequency resolution
 harm.fl = 302;            % lowest frequency
@@ -209,24 +198,17 @@ for ii = 1:nrofi
     end
 end
 
-% header file output
-% path = multisine2hdr(ms,'data/multisine.h');
-
-%% EXPERIMENT
-load('private/20160829_ident'); % load benchmark model
+% EXPERIMENT
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
 nrofp = 20; % number of period of periodic excitation
 input = repmat(input,[nrofp,1]);
-inputnoize = 0.01; % amp of input noise 
 input = input + inputnoize*randn(size(input));
-Ts = 1/ms.harm.fs;
-t = 0:Ts:Ts*(length(input)-1);
-output = lsim(mdl.Pv(1,1),input,t);
-outputnoize = 0.001; % amp of output noise 
+Ts = 1/ms.harm.fs; t = 0:Ts:Ts*(length(input)-1);
+output = lsim(P0,input,t); % EXPERIMENT
 output = output + outputnoize*randn(size(output));
 
-%% STEP 2: NonparametricFRF
+% STEP 2: NonparametricFRF
 % remove transient periods, offsets and trends
 trans = 2;                      % number of transient periods
 trend = 0;                      % period trend removal flag
@@ -243,7 +225,7 @@ subplot(212), plot(time(r0),y(rn,:))
     xlabel('time [s]')
 
 Pest = time2frf_ml(x,y,ms);
-bode_fdi({mdl.Pv(1,1),Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
+bode_fdi({P0,Pest(1,1)},[Pest.freq,Pest.UserData.FRFn(:,1)]);
 legend('true','estimated frd','noise');
 Pest_qlog_301_1000 = Pest;
 
@@ -253,17 +235,17 @@ disp('----------------------------------------')
 
 pause
 %% Connect all experiment
-bode_fdi({mdl.Pv(1,1),Pest_qlog(1,1)},[Pest_qlog.freq,Pest_qlog.UserData.sGhat(:,1)]);
+bode_fdi({P0,Pest_qlog(1,1)},[Pest_qlog.freq,Pest_qlog.UserData.sGhat(:,1)]);
 legend('true','estimated frd','noise');
 title('Single experiment');
 
 Pest = fcat_fdi(Pest_qlog_del,Pest_lin_100_300,Pest_qlog_301_1000);
-bode_fdi({mdl.Pv(1,1),Pest(1,1)},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+bode_fdi({P0,Pest(1,1)},[Pest.freq,Pest.UserData.sGhat(:,1)]);
 legend('true','estimated frd','noise');
 title('Iterative experiment');
 
-EstErr_original = 1-mdl.Pv(1,1)/Pest_qlog;
-EstErr_after = 1-mdl.Pv(1,1)/Pest;
+EstErr_original = 1-P0/Pest_qlog;
+EstErr_after = 1-P0/Pest;
 figure; bodemag(EstErr_original,'r',EstErr_after,'b');
 title('Estimation error');
 legend('Single experiment','Iterative experiment','Location','northwest');
@@ -273,7 +255,7 @@ disp('Connect three expeiment via sGhat')
 disp('----------------------------------------')
 
 pause
-%% STEP 4: PARAMETRIC ESTIMATION
+%% STEP 4: Parametric estimation
 % deterministric/stochastic estimation with non-parametric noise model
 n=7;                        % model order of denominator polynomial
 mh=[4;]; ml=[0;];     % model orders of numerator polynomial
@@ -299,16 +281,16 @@ freq = Pest.freq;
     FRF.btls = hfrf(SYS.btls,freq);
     FRF.gtls = hfrf(SYS.gtls,freq);
 
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.wls,SYS.nls,SYS.ls},[Pest.freq,Pest.UserData.FRFn(:,1)]);
+bode_fdi({P0,Pest(1,1),SYS.wls,SYS.nls,SYS.ls},[Pest.freq,Pest.UserData.FRFn(:,1)]);
 legend('TRUE','FRF','WLS','NLS','LS','FRFn');
 
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.ml,SYS.btls,SYS.gtls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+bode_fdi({P0,Pest(1,1),SYS.ml,SYS.btls,SYS.gtls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
 legend('TRUE','FRF','MLE','BTLS','GTLS','sGhat')
 
 % best estimator
-bode_fdi({mdl.Pv(1,1),Pest(1,1),SYS.btls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
+bode_fdi({P0,Pest(1,1),SYS.btls},[Pest.freq,Pest.UserData.sGhat(:,1)]);
 legend('TRUE','FRF','BTLS','sGhat')
 
 disp('----------------------------------------')
-disp('Parametric identification')
+disp('Parametric estimation')
 disp('----------------------------------------')

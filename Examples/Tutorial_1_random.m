@@ -16,13 +16,14 @@ input = rand(fs*texp,1)*2*amp -amp;
 
 %% EXPERIMENT
 load('private/20160829_ident'); % load benchmark model
+P0 = mdl.Pv(1,1);
 inputnoize = 0.01; % amp of input noise 
 input = input + inputnoize*randn(size(input));
 Ts = 1/fs;
 t = 0:Ts:Ts*(length(input)-1);
 input_noise_amp = 0.01; % amp of input noise 
 input_noize = input + input_noise_amp*randn(size(input));
-output = lsim(mdl.Pv(1,1),input_noize,t);
+output = lsim(P0,input_noize,t);
 output_noise_amp = 0.001; % amp of output noise 
 output_noize = output + output_noise_amp*randn(size(output));
 
@@ -43,6 +44,6 @@ if exist('tfestOptions')
     % Pest = tfest(data,7,4); % require system identification toolbox
     bop = bodeoptions('cstprefs');
     bop.PhaseWrapping = 'on';
-    figure; bode(Pfrd,Pest,mdl.Pv(1,1),bop); xlim([1,1000]); % require system identification toolbox
+    figure; bode(Pfrd,Pest,P0,bop); xlim([1,1000]); % require system identification toolbox
     legend('estimated FRF','fitted by tfest','TRUE');
 end

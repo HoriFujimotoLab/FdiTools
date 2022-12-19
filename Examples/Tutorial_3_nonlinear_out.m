@@ -44,9 +44,6 @@ for ii = 1:nrofi
     end
 end
 
-% header file output
-% path = multisine2hdr(ms,'data/multisine.h');
-
 %% EXPERIMENT
 load('private/20160829_ident'); % load benchmark model
 G = mdl.Pv(1,1);

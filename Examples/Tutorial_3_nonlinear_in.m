@@ -44,11 +44,9 @@ for ii = 1:nrofi
     end
 end
 
-% header file output
-% path = multisine2hdr(ms,'data/multisine.h');
-
 %% EXPERIMENT
 load('private/20160829_ident'); % load benchmark model
+P0 = mdl.Pv(1,1);
 rng default
 nrofs = length(ms.x(1,1,:));
 input = squeeze(ms.x(1,1,:));
@@ -69,15 +67,15 @@ t = 0:Ts:Ts*(length(input)-1);
 odd_nl_amp = 0.0001;
 even_nl_amp = 0.001;
 output_noise = 0.00001*randn(size(input)); % amp of output noise 
-output1 = lsim(mdl.Pv(1,1),input1_noise,t) + odd_nl_amp*input1_noise.^3 + even_nl_amp*input1_noise.^2;
+output1 = lsim(P0,input1_noise,t) + odd_nl_amp*input1_noise.^3 + even_nl_amp*input1_noise.^2;
 output1_noise = output1 + output_noise;
-output2 = lsim(mdl.Pv(1,1),input2_noise,t) + odd_nl_amp*input2_noise.^3 + even_nl_amp*input2_noise.^2;
+output2 = lsim(P0,input2_noise,t) + odd_nl_amp*input2_noise.^3 + even_nl_amp*input2_noise.^2;
 output2_noise = output1 + output_noise;
-output3 = lsim(mdl.Pv(1,1),input3_noise,t) + odd_nl_amp*input3_noise.^3 + even_nl_amp*input3_noise.^2;
+output3 = lsim(P0,input3_noise,t) + odd_nl_amp*input3_noise.^3 + even_nl_amp*input3_noise.^2;
 output3_noise = output1 + output_noise;
 
 % noise-free condition
-output_noise_free = lsim(mdl.Pv(1,1),input1,t);
+output_noise_free = lsim(P0,input1,t);
 %% STEP 3: NON-LINEARITY DETECTION
 % input 1
 % remove transient periods, offsets and trends
