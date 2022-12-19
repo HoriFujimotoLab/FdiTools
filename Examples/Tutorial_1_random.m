@@ -36,11 +36,13 @@ Pfrd = frd(txy,freq,'FrequencyUnit','Hz');
 figure; semilogx(freq,cxy); title('coherence');
 
 % require system identification toolbox
-opt = tfestOptions('WeightingFilter',cxy.*freq);
-Pest = tfest(Pfrd,7,4);
-% data = iddata(output,input,1/fs); 
-% Pest = tfest(data,7,4); % require system identification toolbox
-bop = bodeoptions('cstprefs');
-bop.PhaseWrapping = 'on';
-figure; bode(Pfrd,Pest,mdl.Pv(1,1),bop); xlim([1,1000]); % require system identification toolbox
-legend('estimated FRF','fitted by tfest','TRUE');
+if exist('tfestOptions')
+    opt = tfestOptions('WeightingFilter',cxy.*freq);
+    Pest = tfest(Pfrd,7,4);
+    % data = iddata(output,input,1/fs); 
+    % Pest = tfest(data,7,4); % require system identification toolbox
+    bop = bodeoptions('cstprefs');
+    bop.PhaseWrapping = 'on';
+    figure; bode(Pfrd,Pest,mdl.Pv(1,1),bop); xlim([1,1000]); % require system identification toolbox
+    legend('estimated FRF','fitted by tfest','TRUE');
+end

@@ -1,4 +1,4 @@
-function sysout = fcat_fdi_test(varargin)
+function sysout = fcat_fdi(varargin)
 % FdiTools version of fcat
 % Wataru Ohnishi, The University of Tokyo, 2019
 %%%%
