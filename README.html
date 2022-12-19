@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/default.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markdown-it-texmath/css/texmath.min.css">
+<link rel="stylesheet" href="file:///c:\Users\ohnishi\.vscode\extensions\goessner.mdmath-2.7.4\themes\default\style.css">
+
+</head>
+<body class="markdown-body">
+<h1 dir="auto" id="fditools">FdiTools</h1>
+<p dir="auto">Frequency Domain System Identification MATLAB Toolbox.</p>
+<p dir="auto">Main reference:<br>
+R. Pintelon and J. Schoukens, System Identification: A Frequency Domain Approach, 2nd ed. Wiley-IEEE Press, 2012.</p>
+<h2 dir="auto" id="installation">Installation</h2>
+<p dir="auto">addpath <code>src</code> to MATLAB</p>
+<h3 dir="auto" id="requred-toolbox">Requred toolbox</h3>
+<ul dir="auto">
+<li dir="auto">MATLAB</li>
+<li dir="auto">Control System Toolbox</li>
+<li dir="auto">Signal Processing Toolbox</li>
+<li dir="auto">(optional) System Identification Toolbox</li>
+</ul>
+<h1 dir="auto" id="overview">Overview</h1>
+<h2 dir="auto" id="excitationdesign">ExcitationDesign</h2>
+<ul dir="auto">
+<li dir="auto">Multi sine
+<ul dir="auto">
+<li dir="auto">Options
+<ul dir="auto">
+<li dir="auto">Frequency range: min, max frequency</li>
+<li dir="auto">Frequency resolution</li>
+<li dir="auto">Frequency grid: linear/quasi-logarithmic grid</li>
+<li dir="auto">Frequency spectrum</li>
+</ul>
+</li>
+</ul>
+</li>
+<li dir="auto">Other signals
+<ul dir="auto">
+<li dir="auto">Chirp sine</li>
+<li dir="auto">Pseudo Random Binary Sequence (PRBS)</li>
+<li dir="auto">Swept sine</li>
+</ul>
+</li>
+</ul>
+<h2 dir="auto" id="nonparametricfrf">NonparametricFRF</h2>
+<ul dir="auto">
+<li dir="auto">Periodic excitation
+<ul dir="auto">
+<li dir="auto"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover accent="true"><mi>G</mi><mo>^</mo></mover><mrow><mi>M</mi><mi>L</mi></mrow></msub><mo stretchy="false">(</mo><mi>j</mi><mi>ω</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\hat{G}_{ML}(j\omega)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1968em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.9468em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal">G</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">^</span></span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span><span class="mord mathnormal mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">jω</span><span class="mclose">)</span></span></span></span></li>
+<li dir="auto">Sample (co)variance estimation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>σ</mi><mi>U</mi><mn>2</mn></msubsup><mo separator="true">,</mo><msubsup><mi>σ</mi><mi>Y</mi><mn>2</mn></msubsup><mo separator="true">,</mo><msubsup><mi>σ</mi><mrow><mi>Y</mi><mi>U</mi></mrow><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\sigma_U^2, \sigma_Y^2, \sigma_{YU}^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0894em;vertical-align:-0.2753em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4247em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">U</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2753em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4247em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.22222em;">Y</span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2753em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-2.4247em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.22222em;">Y</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">U</span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2753em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li dir="auto">Asymptotic variance of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>G</mi><mrow><mi>M</mi><mi>L</mi></mrow></msub><mo stretchy="false">(</mo><mi>j</mi><mi>ω</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">G_{ML}(j\omega)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">G</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span><span class="mord mathnormal mtight">L</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">jω</span><span class="mclose">)</span></span></span></span></li>
+</ul>
+</li>
+</ul>
+<h2 dir="auto" id="parametricestimation">ParametricEstimation</h2>
+<ul dir="auto">
+<li dir="auto">Deterministic estimators
+<ul dir="auto">
+<li dir="auto">Least squares, Weighted least squares, Nonlinear least squares</li>
+</ul>
+</li>
+<li dir="auto">Stochastic estimators
+<ul dir="auto">
+<li dir="auto">Maximum likelihood estimation, Bootstrapped total least squares, Generalized total least squares</li>
+</ul>
+</li>
+</ul>
+<h1 dir="auto" id="example">Example</h1>
+<p dir="auto">Two-mass system setup</p>
+<div  dir="auto" ></div>
+<img src="Examples/plot/twomass.jpg?raw=true" width="400">
+<h2 dir="auto" id="excitationdesign-1">ExcitationDesign</h2>
+<div  dir="auto" ></div>
+<img src="Examples/plot/1_Multisine.png?raw=true" width="600">
+<h2 dir="auto" id="nonparametricfrf-1">NonparametricFRF</h2>
+<div  dir="auto" ></div>
+<img src="Examples/plot/2_FRFest.png?raw=true" width="600">
+<h2 dir="auto" id="nonlineardistortions">NonlinearDistortions</h2>
+<div  dir="auto" ></div>
+<img src="Examples/plot/3_NL.png?raw=true" width="600">
+<h2 dir="auto" id="parametricestimation-1">ParametricEstimation</h2>
+<div  dir="auto" ></div>
+<img src="Examples/plot/4_deterministic.png?raw=true" width="600">
+<div  dir="auto" ></div>
+<img src="Examples/plot/4_stochastic.png?raw=true" width="600">
+
+</body>
+</html>

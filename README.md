@@ -42,19 +42,21 @@ addpath `src` to MATLAB
 # Example
 Two-mass system setup
 
-![TwoMass](https://github.com/HoriFujimotoLab/FdiTools/blob/master/Examples/plot/twomass.jpg?raw=true)
+<img src="Examples/plot/twomass.jpg?raw=true" width="400">
 
 
 ## ExcitationDesign
-![Multisine](https://github.com/HoriFujimotoLab/FdiTools/blob/master/Examples/plot/1_Multisine.png?raw=true)
+<img src="Examples/plot/1_Multisine.png?raw=true" width="600">
 
 ## NonparametricFRF
-![NonparametricFRF](https://github.com/HoriFujimotoLab/FdiTools/blob/master/Examples/plot/2_FRFest.png?raw=true)
+<img src="Examples/plot/2_FRFest.png?raw=true" width="600">
 
 ## NonlinearDistortions
-![NonlinearDistortions](https://github.com/HoriFujimotoLab/FdiTools/blob/master/Examples/plot/3_NL.png?raw=true)
+<img src="Examples/plot/3_NL.png?raw=true" width="600">
 
 ## ParametricEstimation
-![ParametricEstimation1](https://github.com/HoriFujimotoLab/FdiTools/blob/master/Examples/plot/4_deterministic.png?raw=true)
-![ParametricEstimation2](https://github.com/HoriFujimotoLab/FdiTools/blob/master/Examples/plot/4_stochastic.png?raw=true)
+<img src="Examples/plot/4_deterministic.png?raw=true" width="600">
+
+
+<img src="Examples/plot/4_stochastic.png?raw=true" width="600">
 
