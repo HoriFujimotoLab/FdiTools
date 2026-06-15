@@ -2,8 +2,6 @@ function varargout = time2frf_ml(varargin)
 %TIME2FRF_ML - maximum-likelihood estimation of FRF (MIMO).
 
 % at this moment, this program only computes SISO, SIMO models.
-% the expansion to MIMO is written temporarily in time2frf_ml_mimo,
-% to prevent any troubles on the present program.
 
 % but, this program can be used for 
 % MIMO with one experiment: zip multisine,

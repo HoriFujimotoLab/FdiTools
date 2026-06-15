@@ -6,6 +6,14 @@ Frequency Domain System Identification MATLAB Toolbox.
 Main reference:<br>
 R. Pintelon and J. Schoukens, System Identification: A Frequency Domain Approach, 2nd ed. Wiley-IEEE Press, 2012.
 
+> **A major-upgraded successor is available:
+> [WataruOhnishi/FdiTools](https://github.com/WataruOhnishi/FdiTools) (v3.0).**
+> It adds an `iddata`-compatible `iodata` container (works without the System
+> Identification Toolbox), the Local Polynomial Method (LPM), MIMO FRF/LPM/BLA,
+> and a redesigned plotting/uncertainty layer.
+> **This repository remains available** as the original (v1–v2.x) for existing users.
+> The latest fix here is tagged **v2.1.1** (see Releases).
+
 ## Installation 
 addpath `src` to MATLAB
 ### Requred toolbox

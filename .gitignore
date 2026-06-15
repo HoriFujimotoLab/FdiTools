@@ -1,6 +1,7 @@
 ### FdiTools Specific
 *.pdf
 *.emf
+README.html
 
 ### Matlab
 *.asv
